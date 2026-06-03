@@ -2,7 +2,7 @@ import type { vec2, ReadonlyVec2 } from 'gl-matrix';
 
 /**
  * Helpers for deriving 2D normals from tangents.
- * 中文：用于从二维切线推导法线的工具集合。
+ * 用于从二维切线推导法线的工具集合。
  */
 export const normal2 = {
   /**

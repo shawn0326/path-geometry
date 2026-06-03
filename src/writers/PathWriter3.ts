@@ -12,7 +12,7 @@ function equalsStrict(a: ReadonlyVec3, b: ReadonlyVec3): boolean {
 
 /**
  * Command-style writer for constructing 3D paths.
- * 中文：用于命令式构建三维 path 的 writer。
+ * 用于命令式构建三维 path 的 writer。
  */
 export class PathWriter3 {
   private readonly path: Path3;

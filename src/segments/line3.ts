@@ -5,7 +5,7 @@ import { getSegmentLength, getSegmentLengths, getSegmentPoints, getSegmentSpaced
 
 /**
  * Operations for 3D straight line segments.
- * 中文：三维直线 segment 的操作集合。
+ * 三维直线 segment 的操作集合。
  */
 export const line3 = {
   /**

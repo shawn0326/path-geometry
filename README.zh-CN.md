@@ -20,6 +20,8 @@ npm install path-math gl-matrix
 
 这个 README 作为人工维护的概览和快速上手文档。详细 API reference 可以通过 JSDoc/TSDoc 注释和 TypeDoc 生成：
 
+在线 API 文档：https://shawn0326.github.io/path-math/
+
 ```sh
 npm run docs
 ```

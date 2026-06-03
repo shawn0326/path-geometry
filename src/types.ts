@@ -10,7 +10,7 @@ export interface SegmentMetrics {
 
 /**
  * Shared fields used by all segment objects.
- * 中文：所有 segment 对象共享的基础字段。
+ * 所有 segment 对象共享的基础字段。
  */
 export interface SegmentBase {
   /** Number of samples used to build the approximate arc-length table. */
@@ -23,7 +23,7 @@ export interface SegmentBase {
 
 /**
  * A 2D straight line segment.
- * 中文：二维直线 segment。
+ * 二维直线 segment。
  */
 export interface LineSegment2 extends SegmentBase {
   type: 'line';
@@ -35,7 +35,7 @@ export interface LineSegment2 extends SegmentBase {
 
 /**
  * A 2D quadratic Bezier segment.
- * 中文：二维二次 Bezier segment。
+ * 二维二次 Bezier segment。
  */
 export interface QuadraticBezierSegment2 extends SegmentBase {
   type: 'quadratic-bezier';
@@ -49,7 +49,7 @@ export interface QuadraticBezierSegment2 extends SegmentBase {
 
 /**
  * A 2D cubic Bezier segment.
- * 中文：二维三次 Bezier segment。
+ * 二维三次 Bezier segment。
  */
 export interface CubicBezierSegment2 extends SegmentBase {
   type: 'cubic-bezier';
@@ -65,13 +65,13 @@ export interface CubicBezierSegment2 extends SegmentBase {
 
 /**
  * Any supported 2D segment.
- * 中文：任意受支持的二维 segment。
+ * 任意受支持的二维 segment。
  */
 export type Segment2 = LineSegment2 | QuadraticBezierSegment2 | CubicBezierSegment2;
 
 /**
  * A 3D straight line segment.
- * 中文：三维直线 segment。
+ * 三维直线 segment。
  */
 export interface LineSegment3 extends SegmentBase {
   type: 'line';
@@ -83,7 +83,7 @@ export interface LineSegment3 extends SegmentBase {
 
 /**
  * A 3D quadratic Bezier segment.
- * 中文：三维二次 Bezier segment。
+ * 三维二次 Bezier segment。
  */
 export interface QuadraticBezierSegment3 extends SegmentBase {
   type: 'quadratic-bezier';
@@ -97,7 +97,7 @@ export interface QuadraticBezierSegment3 extends SegmentBase {
 
 /**
  * A 3D cubic Bezier segment.
- * 中文：三维三次 Bezier segment。
+ * 三维三次 Bezier segment。
  */
 export interface CubicBezierSegment3 extends SegmentBase {
   type: 'cubic-bezier';
@@ -113,7 +113,7 @@ export interface CubicBezierSegment3 extends SegmentBase {
 
 /**
  * Any supported 3D segment.
- * 中文：任意受支持的三维 segment。
+ * 任意受支持的三维 segment。
  */
 export type Segment3 = LineSegment3 | QuadraticBezierSegment3 | CubicBezierSegment3;
 
@@ -127,7 +127,7 @@ export interface PathMetrics {
 
 /**
  * A 2D path made of ordered 2D segments.
- * 中文：由有序二维 segment 组成的 path。
+ * 由有序二维 segment 组成的 path。
  */
 export interface Path2 {
   /** Ordered path segments. */
@@ -140,7 +140,7 @@ export interface Path2 {
 
 /**
  * A 3D path made of ordered 3D segments.
- * 中文：由有序三维 segment 组成的 path。
+ * 由有序三维 segment 组成的 path。
  */
 export interface Path3 {
   /** Ordered path segments. */
@@ -153,7 +153,7 @@ export interface Path3 {
 
 /**
  * Options for building a path from polyline points.
- * 中文：从折线点构建 path 的选项。
+ * 从折线点构建 path 的选项。
  */
 export interface PolylineOptions {
   /** Add a closing segment from the last point back to the first point. */
@@ -162,7 +162,7 @@ export interface PolylineOptions {
 
 /**
  * Options for building smooth cubic curves from points.
- * 中文：从点构建平滑三次曲线的选项。
+ * 从点构建平滑三次曲线的选项。
  */
 export interface SmoothCurveOptions {
   /** Smoothness factor used by the t3d-style control point algorithm. */
@@ -173,7 +173,7 @@ export interface SmoothCurveOptions {
 
 /**
  * Options for building beveled curves from points.
- * 中文：从点构建倒角曲线的选项。
+ * 从点构建倒角曲线的选项。
  */
 export interface BeveledCurveOptions {
   /** Maximum bevel radius around each corner. */
@@ -184,7 +184,7 @@ export interface BeveledCurveOptions {
 
 /**
  * Options for explicitly preprocessing point arrays before path construction.
- * 中文：在构建 path 前显式预处理点数组的选项。
+ * 在构建 path 前显式预处理点数组的选项。
  */
 export interface PointPreprocessOptions {
   /** Also remove a duplicated closing point when it equals the first point. */
@@ -197,7 +197,7 @@ export interface PointPreprocessOptions {
 
 /**
  * Frame data sampled from a 3D path for mesh generation.
- * 中文：为网格生成从三维 path 采样得到的 frame 数据。
+ * 为网格生成从三维 path 采样得到的 frame 数据。
  */
 export interface PathFrames3 {
   /** Sampled path points. */
@@ -222,7 +222,7 @@ export interface PathFrames3 {
 
 /**
  * Options for building 3D path frames.
- * 中文：构建三维 path frame 的选项。
+ * 构建三维 path frame 的选项。
  */
 export interface BuildFramesOptions3 {
   /** Initial normal direction. When omitted, a stable perpendicular axis is chosen. */
@@ -239,12 +239,12 @@ export interface BuildFramesOptions3 {
 
 /**
  * Read-only 2D vector input accepted by path-math APIs.
- * 中文：path-math API 接受的只读二维向量输入。
+ * path-math API 接受的只读二维向量输入。
  */
 export type ReadonlyVector2 = ReadonlyVec2;
 
 /**
  * Read-only 3D vector input accepted by path-math APIs.
- * 中文：path-math API 接受的只读三维向量输入。
+ * path-math API 接受的只读三维向量输入。
  */
 export type ReadonlyVector3 = ReadonlyVec3;

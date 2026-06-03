@@ -66,7 +66,7 @@ function normalizeOrFallback(out: vec3, fallback?: ReadonlyVec3): vec3 {
 
 /**
  * Operations for 3D paths made of line and Bezier segments.
- * 中文：由直线和 Bezier segment 组成的三维 path 操作集合。
+ * 由直线和 Bezier segment 组成的三维 path 操作集合。
  */
 export const path3 = {
   /**

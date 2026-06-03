@@ -5,7 +5,7 @@ import { getSegmentLength, getSegmentLengths, getSegmentPoints, getSegmentSpaced
 
 /**
  * Operations for 2D quadratic Bezier segments.
- * 中文：二维二次 Bezier segment 的操作集合。
+ * 二维二次 Bezier segment 的操作集合。
  */
 export const quadraticBezier2 = {
   /**

@@ -20,6 +20,8 @@ npm install path-math gl-matrix
 
 This README is the human overview and quick-start guide. Detailed API reference docs can be generated from JSDoc/TSDoc comments with TypeDoc:
 
+Online API documentation: https://shawn0326.github.io/path-math/
+
 ```sh
 npm run docs
 ```

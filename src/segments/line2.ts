@@ -5,7 +5,7 @@ import { getSegmentLength, getSegmentLengths, getSegmentPoints, getSegmentSpaced
 
 /**
  * Operations for 2D straight line segments.
- * 中文：二维直线 segment 的操作集合。
+ * 二维直线 segment 的操作集合。
  */
 export const line2 = {
   /**

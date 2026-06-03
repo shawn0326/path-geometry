@@ -52,7 +52,7 @@ function clampPointBetween(out: vec2, value: ReadonlyVec2, a: ReadonlyVec2, b: R
 
 /**
  * Operations for 2D paths made of line and Bezier segments.
- * 中文：由直线和 Bezier segment 组成的二维 path 操作集合。
+ * 由直线和 Bezier segment 组成的二维 path 操作集合。
  */
 export const path2 = {
   /**

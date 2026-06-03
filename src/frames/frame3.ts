@@ -7,7 +7,7 @@ const _axis = vec3.create();
 
 /**
  * Helpers for constructing and transporting 3D frame vectors.
- * 中文：用于构建和传递三维 frame 向量的工具集合。
+ * 用于构建和传递三维 frame 向量的工具集合。
  */
 export const frame3 = {
   /**
