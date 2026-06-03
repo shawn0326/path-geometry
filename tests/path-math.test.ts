@@ -3,8 +3,8 @@ import { vec2, vec3 } from 'gl-matrix';
 import { Vector3 as T3DVector3 } from 't3d';
 import { CubicBezierCurve3 as T3DCubicBezierCurve3 } from 't3d/examples/jsm/math/curves/CubicBezierCurve3.js';
 import { CurvePath3 as T3DCurvePath3 } from 't3d/examples/jsm/math/curves/CurvePath3.js';
-import { cubicBezier2, cubicBezier3, line3, normal2, path2, path3, PathWriter3, quadraticBezier3 } from '../src/index';
-import type { Path3, PolylineOptions, ReadonlyVector3 } from '../src/index';
+import { cubicBezier2, cubicBezier3, line3, normal2, path2, path3, PathWriter3, quadraticBezier3, ribbon, tube } from '../src/index';
+import type { Path3, PathFrames3, PolylineOptions, ReadonlyVector3 } from '../src/index';
 
 const EPS = 1e-5;
 
@@ -31,6 +31,18 @@ function vec3FromT3D(v: T3DVector3): vec3 {
 function createPolyline3(points: ReadonlyVector3[], options?: PolylineOptions): Path3 {
   const path = path3.create();
   return path3.setPolylines(path, points, options);
+}
+
+function createStraightFrames3(): PathFrames3 {
+  const p = createPolyline3([
+    vec3.fromValues(0, 0, 0),
+    vec3.fromValues(10, 0, 0)
+  ]);
+
+  return path3.buildFrames(p, {
+    divisions: 1,
+    initialNormal: vec3.fromValues(0, 1, 0)
+  });
 }
 
 describe('segments', () => {
@@ -482,5 +494,68 @@ describe('paths', () => {
     expect(path3.getLength(p)).toBe(0);
     expect(path3.buildFrames(p).points).toHaveLength(0);
     expectVec3Close(path3.pointAtU(out, p, 0.5), vec3.fromValues(9, 9, 9));
+  });
+});
+
+describe('geometry builders', () => {
+  it('builds empty tube and ribbon geometry for empty frames', () => {
+    const frames = path3.buildFrames(path3.create());
+    expect(tube.build(frames)).toEqual({ positions: [], normals: [], uvs: [], uvs2: [], indices: [] });
+    expect(ribbon.build(frames)).toEqual({ positions: [], normals: [], uvs: [], uvs2: [], indices: [] });
+  });
+
+  it('builds indexed tube side geometry from straight frames', () => {
+    const frames = createStraightFrames3();
+    const geometry = tube.build(frames, { radius: 1, radialSegments: 4 });
+    const vertexCount = frames.points.length * (4 + 1);
+
+    expect(geometry.positions).toHaveLength(vertexCount * 3);
+    expect(geometry.normals).toHaveLength(vertexCount * 3);
+    expect(geometry.uvs).toHaveLength(vertexCount * 2);
+    expect(geometry.uvs2).toHaveLength(vertexCount * 2);
+    expect(geometry.indices).toHaveLength((frames.points.length - 1) * 4 * 6);
+    expectVec3Close(vec3.fromValues(geometry.positions[0]!, geometry.positions[1]!, geometry.positions[2]!), vec3.fromValues(0, 1, 0));
+    expectVec3Close(vec3.fromValues(geometry.normals[0]!, geometry.normals[1]!, geometry.normals[2]!), vec3.fromValues(0, 1, 0));
+  });
+
+  it('adds tube caps with duplicated cap vertices', () => {
+    const frames = createStraightFrames3();
+    const geometry = tube.build(frames, {
+      radius: 1,
+      radialSegments: 4,
+      generateStartCap: true,
+      generateEndCap: true
+    });
+    const sideVertexCount = frames.points.length * (4 + 1);
+    const capVertexCount = 4 * 2;
+
+    expect(geometry.positions).toHaveLength((sideVertexCount + capVertexCount) * 3);
+    expect(geometry.indices).toHaveLength((frames.points.length - 1) * 4 * 6 + 2 * (4 - 2) * 3);
+  });
+
+  it('builds indexed ribbon geometry from straight frames', () => {
+    const frames = createStraightFrames3();
+    const geometry = ribbon.build(frames, { width: 2, arrow: false });
+    const vertexCount = frames.points.length * 2;
+
+    expect(geometry.positions).toHaveLength(vertexCount * 3);
+    expect(geometry.normals).toHaveLength(vertexCount * 3);
+    expect(geometry.uvs).toHaveLength(vertexCount * 2);
+    expect(geometry.uvs2).toHaveLength(vertexCount * 2);
+    expect(geometry.indices).toHaveLength((frames.points.length - 1) * 6);
+    expectVec3Close(vec3.fromValues(geometry.positions[0]!, geometry.positions[1]!, geometry.positions[2]!), vec3.fromValues(0, 0, -1));
+    expectVec3Close(vec3.fromValues(geometry.positions[3]!, geometry.positions[4]!, geometry.positions[5]!), vec3.fromValues(0, 0, 1));
+  });
+
+  it('supports one-sided ribbons and arrow heads', () => {
+    const frames = createStraightFrames3();
+    const left = ribbon.build(frames, { width: 2, side: 'left', arrow: false });
+    const right = ribbon.build(frames, { width: 2, side: 'right', arrow: false });
+    const arrow = ribbon.build(frames, { width: 2, arrow: true });
+
+    expectVec3Close(vec3.fromValues(left.positions[3]!, left.positions[4]!, left.positions[5]!), vec3.fromValues(0, 0, 0));
+    expectVec3Close(vec3.fromValues(right.positions[0]!, right.positions[1]!, right.positions[2]!), vec3.fromValues(0, 0, 0));
+    expect(arrow.positions).toHaveLength((frames.points.length * 2 + 3) * 3);
+    expect(arrow.indices.slice(-3)).toEqual([frames.points.length * 2 + 2, frames.points.length * 2, frames.points.length * 2 + 1]);
   });
 });

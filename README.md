@@ -149,6 +149,42 @@ for (let i = 0; i < frames.points.length; i++) {
 
 Use `divisions` to control curve sampling density. Use `initialNormal` to lock the starting orientation when the generated mesh needs a predictable roll direction.
 
+## Geometry Building
+
+Use `tube.build(frames, options?)` and `ribbon.build(frames, options?)` to turn 3D path frames into renderer-neutral indexed geometry buffers.
+
+Both builders return plain arrays: `positions`, `normals`, `uvs`, `uvs2`, and `indices`. You can convert them to the buffer/attribute format required by t3d, three.js, WebGPU, or your own renderer.
+
+```ts
+import { vec3 } from 'gl-matrix';
+import { path3, ribbon, tube } from 'path-math';
+
+const path = path3.create();
+path3.setPolylines(path, [
+  vec3.fromValues(0, 0, 0),
+  vec3.fromValues(10, 0, 0),
+  vec3.fromValues(10, 10, 0)
+]);
+
+const frames = path3.buildFrames(path, {
+  divisions: 16,
+  initialNormal: vec3.fromValues(0, 0, 1)
+});
+
+const tubeGeometry = tube.build(frames, {
+  radius: 0.2,
+  radialSegments: 12,
+  generateStartCap: true,
+  generateEndCap: true
+});
+
+const ribbonGeometry = ribbon.build(frames, {
+  width: 1,
+  side: 'both',
+  arrow: false
+});
+```
+
 ## Cache Updates
 
 Lengths and arc-length tables are cached and refreshed automatically when the library mutates a path through its own APIs.

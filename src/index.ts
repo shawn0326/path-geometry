@@ -8,6 +8,9 @@ export { cubicBezier3 } from './segments/cubic-bezier3';
 export { path2 } from './paths/path2';
 export { path3 } from './paths/path3';
 
+export { tube } from './geometries/tube';
+export { ribbon } from './geometries/ribbon';
+
 export { PathWriter2 } from './writers/PathWriter2';
 export { PathWriter3 } from './writers/PathWriter3';
 
@@ -17,8 +20,11 @@ export { frame3 } from './frames/frame3';
 export type {
   BeveledCurveOptions,
   BuildFramesOptions3,
+  BuildRibbonOptions,
+  BuildTubeOptions,
   CubicBezierSegment2,
   CubicBezierSegment3,
+  GeometryData3,
   LineSegment2,
   LineSegment3,
   Path2,
@@ -30,7 +36,10 @@ export type {
   QuadraticBezierSegment3,
   ReadonlyVector2,
   ReadonlyVector3,
+  RibbonGeometryData,
+  RibbonSide,
   Segment2,
   Segment3,
-  SmoothCurveOptions
+  SmoothCurveOptions,
+  TubeGeometryData
 } from './types';

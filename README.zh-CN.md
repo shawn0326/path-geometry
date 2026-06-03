@@ -149,6 +149,42 @@ for (let i = 0; i < frames.points.length; i++) {
 
 使用 `divisions` 控制 curve 的采样密度。使用 `initialNormal` 可以锁定起始方向，让生成的 mesh 有可预测的 roll 方向。
 
+## 几何生成
+
+可以使用 `tube.build(frames, options?)` 和 `ribbon.build(frames, options?)`，把 3D path frames 转成与渲染器无关的索引几何数据。
+
+两个 builder 都返回普通数组：`positions`、`normals`、`uvs`、`uvs2` 和 `indices`。你可以按需要把它们转换成 t3d、three.js、WebGPU 或自定义 renderer 所需的 buffer/attribute 格式。
+
+```ts
+import { vec3 } from 'gl-matrix';
+import { path3, ribbon, tube } from 'path-math';
+
+const path = path3.create();
+path3.setPolylines(path, [
+  vec3.fromValues(0, 0, 0),
+  vec3.fromValues(10, 0, 0),
+  vec3.fromValues(10, 10, 0)
+]);
+
+const frames = path3.buildFrames(path, {
+  divisions: 16,
+  initialNormal: vec3.fromValues(0, 0, 1)
+});
+
+const tubeGeometry = tube.build(frames, {
+  radius: 0.2,
+  radialSegments: 12,
+  generateStartCap: true,
+  generateEndCap: true
+});
+
+const ribbonGeometry = ribbon.build(frames, {
+  width: 1,
+  side: 'both',
+  arrow: false
+});
+```
+
 ## 缓存更新
 
 长度和弧长表会被缓存。通过库自身 API 修改 path 时，缓存会自动标脏并在查询时刷新。

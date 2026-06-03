@@ -238,6 +238,70 @@ export interface BuildFramesOptions3 {
 }
 
 /**
+ * Renderer-neutral indexed 3D geometry buffers.
+ * 与渲染器无关的三维索引几何数据。
+ */
+export interface GeometryData3 {
+  /** Flat XYZ vertex positions. */
+  positions: number[];
+  /** Flat XYZ vertex normals. */
+  normals: number[];
+  /** Flat UV coordinates. */
+  uvs: number[];
+  /** Secondary flat UV coordinates, usually normalized by total path length. */
+  uvs2: number[];
+  /** Triangle indices. */
+  indices: number[];
+}
+
+/**
+ * Geometry buffers generated for a tube along a 3D path.
+ * 沿三维 path 生成的管状几何数据。
+ */
+export interface TubeGeometryData extends GeometryData3 {}
+
+/**
+ * Geometry buffers generated for a ribbon along a 3D path.
+ * 沿三维 path 生成的带状几何数据。
+ */
+export interface RibbonGeometryData extends GeometryData3 {}
+
+/**
+ * Options for building tube geometry from 3D path frames.
+ * 从三维 path frame 构建管状几何的选项。
+ */
+export interface BuildTubeOptions {
+  /** Tube radius. Defaults to 0.1. */
+  radius?: number;
+  /** Number of segments around each tube ring. Defaults to 8. */
+  radialSegments?: number;
+  /** Initial angle around the tangent axis in radians. Defaults to 0. */
+  startRad?: number;
+  /** Add triangles that close the first tube ring. Defaults to false. */
+  generateStartCap?: boolean;
+  /** Add triangles that close the last tube ring. Defaults to false. */
+  generateEndCap?: boolean;
+}
+
+/** Which side of the path a ribbon should occupy. */
+export type RibbonSide = 'both' | 'left' | 'right';
+
+/**
+ * Options for building ribbon geometry from 3D path frames.
+ * 从三维 path frame 构建带状几何的选项。
+ */
+export interface BuildRibbonOptions {
+  /** Full ribbon width. Defaults to 0.1. */
+  width?: number;
+  /** Add an arrow head at the end of the ribbon. Defaults to false. */
+  arrow?: boolean;
+  /** Build both sides or only one side relative to the path center line. Defaults to 'both'. */
+  side?: RibbonSide;
+  /** Add extra triangles around sharp corners. Defaults to false. */
+  sharp?: boolean;
+}
+
+/**
  * Read-only 2D vector input accepted by path-math APIs.
  * path-math API 接受的只读二维向量输入。
  */
