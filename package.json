@@ -1,0 +1,57 @@
+{
+  "name": "path-math",
+  "version": "0.1.0",
+  "description": "A small path and curve math library built on gl-matrix.",
+  "license": "MIT",
+  "author": "shawn0326",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shawn0326/path-math.git"
+  },
+  "bugs": {
+    "url": "https://github.com/shawn0326/path-math/issues"
+  },
+  "homepage": "https://github.com/shawn0326/path-math#readme",
+  "keywords": [
+    "path",
+    "curve",
+    "bezier",
+    "geometry",
+    "math",
+    "gl-matrix",
+    "typescript"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --external gl-matrix",
+    "docs": "typedoc",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "gl-matrix": "^3.4.4"
+  },
+  "devDependencies": {
+    "t3d": "^0.5.3",
+    "tsup": "^8.5.0",
+    "typedoc": "^0.28.19",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.8"
+  }
+}
