@@ -1,30 +1,30 @@
-import { vec2 } from 'gl-matrix';
-import type { ReadonlyVec2 } from 'gl-matrix';
-import type { Path2 } from '../types';
-import { cubicBezier2 } from '../segments/cubic-bezier2';
-import { line2 } from '../segments/line2';
-import { quadraticBezier2 } from '../segments/quadratic-bezier2';
-import { path2 } from '../paths/path2';
+import { vec3 } from 'gl-matrix';
+import type { ReadonlyVec3 } from 'gl-matrix';
+import type { Path } from '../types';
+import { cubicBezier } from '../segments/cubic-bezier';
+import { line } from '../segments/line';
+import { quadraticBezier } from '../segments/quadratic-bezier';
+import { path as pathApi } from '../paths/path';
 
-function equalsStrict(a: ReadonlyVec2, b: ReadonlyVec2): boolean {
-  return a[0] === b[0] && a[1] === b[1];
+function equalsStrict(a: ReadonlyVec3, b: ReadonlyVec3): boolean {
+  return a[0] === b[0] && a[1] === b[1] && a[2] === b[2];
 }
 
 /**
- * Command-style writer for constructing 2D paths.
- * 用于命令式构建二维 path 的 writer。
+ * Command-style writer for constructing 3D paths.
+ * 用于命令式构建三维 path 的 writer。
  */
-export class PathWriter2 {
-  private readonly path: Path2;
-  private currentPoint: vec2 | null = null;
-  private subpathStart: vec2 | null = null;
+export class PathWriter {
+  private readonly path: Path;
+  private currentPoint: vec3 | null = null;
+  private subpathStart: vec3 | null = null;
 
   /**
    * Creates a writer around an existing path or a new empty path.
    * @param path Path to mutate.
    */
-  constructor(path: Path2 = path2.create()) {
-    this.path = path;
+  constructor(targetPath: Path = pathApi.create()) {
+    this.path = targetPath;
   }
 
   /**
@@ -32,9 +32,9 @@ export class PathWriter2 {
    * @param point New current point.
    * @returns This writer.
    */
-  moveTo(point: ReadonlyVec2): this {
-    this.currentPoint = vec2.clone(point);
-    this.subpathStart = vec2.clone(point);
+  moveTo(point: ReadonlyVec3): this {
+    this.currentPoint = vec3.clone(point);
+    this.subpathStart = vec3.clone(point);
     return this;
   }
 
@@ -43,10 +43,10 @@ export class PathWriter2 {
    * @param point End point.
    * @returns This writer.
    */
-  lineTo(point: ReadonlyVec2): this {
+  lineTo(point: ReadonlyVec3): this {
     if (!this.currentPoint) return this.moveTo(point);
-    path2.addSegment(this.path, line2.create(this.currentPoint, point));
-    vec2.copy(this.currentPoint, point);
+    pathApi.addSegment(this.path, line.create(this.currentPoint, point));
+    vec3.copy(this.currentPoint, point);
     return this;
   }
 
@@ -56,10 +56,10 @@ export class PathWriter2 {
    * @param point End point.
    * @returns This writer.
    */
-  quadraticTo(control: ReadonlyVec2, point: ReadonlyVec2): this {
+  quadraticTo(control: ReadonlyVec3, point: ReadonlyVec3): this {
     if (!this.currentPoint) return this.moveTo(point);
-    path2.addSegment(this.path, quadraticBezier2.create(this.currentPoint, control, point));
-    vec2.copy(this.currentPoint, point);
+    pathApi.addSegment(this.path, quadraticBezier.create(this.currentPoint, control, point));
+    vec3.copy(this.currentPoint, point);
     return this;
   }
 
@@ -70,10 +70,10 @@ export class PathWriter2 {
    * @param point End point.
    * @returns This writer.
    */
-  cubicTo(control1: ReadonlyVec2, control2: ReadonlyVec2, point: ReadonlyVec2): this {
+  cubicTo(control1: ReadonlyVec3, control2: ReadonlyVec3, point: ReadonlyVec3): this {
     if (!this.currentPoint) return this.moveTo(point);
-    path2.addSegment(this.path, cubicBezier2.create(this.currentPoint, control1, control2, point));
-    vec2.copy(this.currentPoint, point);
+    pathApi.addSegment(this.path, cubicBezier.create(this.currentPoint, control1, control2, point));
+    vec3.copy(this.currentPoint, point);
     return this;
   }
 
@@ -93,7 +93,7 @@ export class PathWriter2 {
    * @returns This writer.
    */
   clear(): this {
-    path2.clear(this.path);
+    pathApi.clear(this.path);
     this.currentPoint = null;
     this.subpathStart = null;
     return this;
@@ -103,7 +103,7 @@ export class PathWriter2 {
    * Returns the underlying mutable path.
    * @returns The writer's path.
    */
-  toPath(): Path2 {
+  toPath(): Path {
     return this.path;
   }
 }

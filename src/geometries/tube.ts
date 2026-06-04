@@ -1,6 +1,6 @@
 import { vec3 } from 'gl-matrix';
 import type { ReadonlyVec3 } from 'gl-matrix';
-import type { BuildTubeOptions, PathFrames3, TubeGeometryData } from '../types';
+import type { BuildTubeOptions, PathFrames, TubeGeometryData } from '../types';
 import { rotateAroundAxis } from '../utils/rotate';
 
 const TAU = Math.PI * 2;
@@ -85,7 +85,7 @@ export const tube = {
    * Build renderer-neutral indexed tube geometry.
    * 构建与渲染器无关的索引管状几何数据。
    */
-  build(frames: PathFrames3, options: BuildTubeOptions = {}): TubeGeometryData {
+  build(frames: PathFrames, options: BuildTubeOptions = {}): TubeGeometryData {
     const geometry = createGeometry();
     const frameLength = frames.points.length;
 

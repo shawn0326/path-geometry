@@ -2,7 +2,7 @@
 
 [Chinese README](./README.zh-CN.md)
 
-`path-math` is a small TypeScript math library for 2D/3D paths and curves. It is based on `gl-matrix` and does not depend on t3d, three.js, DOM, Canvas, WebGL, or WebGPU.
+`path-math` is a small TypeScript math library for 3D paths, curves, frames, and geometry generation. It is based on `gl-matrix` and does not depend on t3d, three.js, DOM, Canvas, WebGL, or WebGPU.
 
 The first implementation follows the curve/path behavior from `t3d.js/examples/jsm/math/curves`, while exposing function-style APIs with `out` parameters where high-frequency calls matter.
 
@@ -32,15 +32,15 @@ The GitHub Actions workflow deploys `docs/api/` to GitHub Pages automatically af
 
 ## Basic Usage
 
-Create a path with `PathWriter2` or `PathWriter3` when your source data is command-like: move, line, quadratic Bezier, cubic Bezier, close.
+Create a path with `PathWriter` when your source data is command-like: move, line, quadratic Bezier, cubic Bezier, close.
 
 ```ts
 import { vec3 } from 'gl-matrix';
-import { PathWriter3, path3 } from 'path-math';
+import { PathWriter, path } from 'path-math';
 
-const writer = new PathWriter3();
+const writer = new PathWriter();
 
-const path = writer
+const route = writer
   .moveTo(vec3.fromValues(0, 0, 0))
   .lineTo(vec3.fromValues(10, 0, 0))
   .cubicTo(
@@ -53,21 +53,23 @@ const path = writer
 const point = vec3.create();
 const tangent = vec3.create();
 
-path3.pointAtDistance(point, path, 10);
-path3.tangentAtDistance(tangent, path, 10);
+path.pointAtDistance(point, route, 10);
+path.tangentAtDistance(tangent, route, 10);
 ```
 
 ## From Points
 
-Create a path from an ordered point array when your source data is already a polyline or route. `path2` and `path3` provide the same construction styles:
+Create a path from an ordered `vec3` point array when your source data is already a polyline or route. `path` provides these construction styles:
 
-- `setPolylines` connects points with straight line segments.
-- `setSmoothCurves` builds smooth cubic curves through the points.
-- `setBeveledCurves` keeps straight sections and rounds corners with quadratic bevels.
+- `setPolyline` connects points with straight line segments.
+- `setSmoothCurve` builds smooth cubic curves through the points.
+- `setBeveledCurve` keeps straight sections and rounds corners with quadratic bevels.
+
+For planar data, pass `vec3` points with `z = 0` instead of using a separate 2D API.
 
 ```ts
 import { vec3 } from 'gl-matrix';
-import { path3 } from 'path-math';
+import { path } from 'path-math';
 
 const rawPoints = [
   vec3.fromValues(0, 0, 0),
@@ -76,18 +78,18 @@ const rawPoints = [
   vec3.fromValues(20, 10, 0)
 ];
 
-const path = path3.create();
+const route = path.create();
 
-path3.setPolylines(path, rawPoints);
-path3.setSmoothCurves(path, rawPoints, { smooth: 0.25 });
-path3.setBeveledCurves(path, rawPoints, { bevelRadius: 2 });
+path.setPolyline(route, rawPoints);
+path.setSmoothCurve(route, rawPoints, { smooth: 0.25 });
+path.setBeveledCurve(route, rawPoints, { bevelRadius: 2 });
 ```
 
 Path constructors do not implicitly filter points. This keeps runtime cost low and stays close to t3d behavior. If input data may contain consecutive duplicate points, call `preprocessPoints` explicitly before constructing a path.
 
 ```ts
-const points = path3.preprocessPoints(rawPoints, { close: true });
-path3.setPolylines(path, points, { close: true });
+const points = path.preprocessPoints(rawPoints, { close: true });
+path.setPolyline(route, points, { close: true });
 ```
 
 `preprocessPoints` removes consecutive duplicate points by default. If `close: true`, it also removes a duplicated final point equal to the first point, then lets the path close by adding the closing segment.
@@ -103,21 +105,21 @@ Paths expose sampling methods for common geometry workflows:
 - `getSpacedPoints(path, divisions?)` samples at approximately even arc-length spacing.
 
 ```ts
-const length = path3.getLength(path);
+const length = path.getLength(route);
 
 const point = vec3.create();
 const tangent = vec3.create();
 
-path3.pointAtU(point, path, 0.5);
-path3.tangentAtDistance(tangent, path, length * 0.5);
+path.pointAtU(point, route, 0.5);
+path.tangentAtDistance(tangent, route, length * 0.5);
 
-const drawingPoints = path3.getPoints(path, 24);
-const evenlySpaced = path3.getSpacedPoints(path, 32);
+const drawingPoints = path.getPoints(route, 24);
+const evenlySpaced = path.getSpacedPoints(route, 32);
 ```
 
 ## Frame Building
 
-Use `path3.buildFrames(path, options?)` when you need stable orientation data along a 3D path, especially for mesh generation such as tubes, ribbons, roads, rails, strokes, or extruded path geometry.
+Use `path.buildFrames(route, options?)` when you need stable orientation data along a 3D path, especially for mesh generation such as tubes, ribbons, roads, rails, strokes, or extruded path geometry.
 
 `buildFrames` follows the t3d `CurvePath3.computeFrames` behavior. It samples each segment, keeps line segments at one division, and returns both the sampled path points and the frame data needed to place geometry along the path:
 
@@ -132,9 +134,10 @@ Use `path3.buildFrames(path, options?)` when you need stable orientation data al
 - `tangentTypes`
 
 ```ts
-const frames = path3.buildFrames(path, {
+const frames = path.buildFrames(route, {
   divisions: 24,
   initialNormal: vec3.fromValues(0, 0, 1),
+  transport: true,
   close: false
 });
 
@@ -147,7 +150,7 @@ for (let i = 0; i < frames.points.length; i++) {
 }
 ```
 
-Use `divisions` to control curve sampling density. Use `initialNormal` to lock the starting orientation when the generated mesh needs a predictable roll direction.
+Use `divisions` to control curve sampling density. Use `initialNormal` to lock the starting orientation when the generated mesh needs a predictable roll direction. Use `transport` to enable or disable parallel-transport frame propagation.
 
 ## Geometry Building
 
@@ -157,16 +160,16 @@ Both builders return plain arrays: `positions`, `normals`, `uvs`, `uvs2`, and `i
 
 ```ts
 import { vec3 } from 'gl-matrix';
-import { path3, ribbon, tube } from 'path-math';
+import { path, ribbon, tube } from 'path-math';
 
-const path = path3.create();
-path3.setPolylines(path, [
+const route = path.create();
+path.setPolyline(route, [
   vec3.fromValues(0, 0, 0),
   vec3.fromValues(10, 0, 0),
   vec3.fromValues(10, 10, 0)
 ]);
 
-const frames = path3.buildFrames(path, {
+const frames = path.buildFrames(route, {
   divisions: 16,
   initialNormal: vec3.fromValues(0, 0, 1)
 });
@@ -192,16 +195,18 @@ Lengths and arc-length tables are cached and refreshed automatically when the li
 If you directly mutate an internal segment point, mark the cache dirty yourself:
 
 ```ts
-path.segments[0].p1[0] = 20;
+route.segments[0].p1[0] = 20;
 
 // Marks only path-level metrics dirty.
-path3.markDirty(path);
+path.markDirty(route);
 
 // Marks path metrics and all segment metrics dirty.
-path3.markDirty(path, true);
+path.markDirty(route, true);
 ```
 
-Use `markDirty(path, true)` after direct edits to `path.segments[i].p0`, `p1`, `p2`, or `p3`.
+`_metrics` and `_needsUpdate` are internal cache fields. Do not read or mutate them directly.
+
+Use `path.markDirty(route, true)` after direct edits to `route.segments[i].p0`, `p1`, `p2`, or `p3`.
 
 ## Tests
 

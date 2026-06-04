@@ -1,10 +1,10 @@
 import { vec3 } from 'gl-matrix';
 import type { ReadonlyVec3 } from 'gl-matrix';
-import type { Path3 } from '../types';
-import { cubicBezier3 } from '../segments/cubic-bezier3';
-import { line3 } from '../segments/line3';
-import { quadraticBezier3 } from '../segments/quadratic-bezier3';
-import { path3 } from '../paths/path3';
+import type { Path } from '../types';
+import { cubicBezier } from '../segments/cubic-bezier3';
+import { line } from '../segments/line3';
+import { quadraticBezier } from '../segments/quadratic-bezier3';
+import { path as pathApi } from '../paths/path3';
 
 function equalsStrict(a: ReadonlyVec3, b: ReadonlyVec3): boolean {
   return a[0] === b[0] && a[1] === b[1] && a[2] === b[2];
@@ -14,8 +14,8 @@ function equalsStrict(a: ReadonlyVec3, b: ReadonlyVec3): boolean {
  * Command-style writer for constructing 3D paths.
  * 用于命令式构建三维 path 的 writer。
  */
-export class PathWriter3 {
-  private readonly path: Path3;
+export class PathWriter {
+  private readonly path: Path;
   private currentPoint: vec3 | null = null;
   private subpathStart: vec3 | null = null;
 
@@ -23,8 +23,8 @@ export class PathWriter3 {
    * Creates a writer around an existing path or a new empty path.
    * @param path Path to mutate.
    */
-  constructor(path: Path3 = path3.create()) {
-    this.path = path;
+  constructor(targetPath: Path = pathApi.create()) {
+    this.path = targetPath;
   }
 
   /**
@@ -45,7 +45,7 @@ export class PathWriter3 {
    */
   lineTo(point: ReadonlyVec3): this {
     if (!this.currentPoint) return this.moveTo(point);
-    path3.addSegment(this.path, line3.create(this.currentPoint, point));
+    pathApi.addSegment(this.path, line.create(this.currentPoint, point));
     vec3.copy(this.currentPoint, point);
     return this;
   }
@@ -58,7 +58,7 @@ export class PathWriter3 {
    */
   quadraticTo(control: ReadonlyVec3, point: ReadonlyVec3): this {
     if (!this.currentPoint) return this.moveTo(point);
-    path3.addSegment(this.path, quadraticBezier3.create(this.currentPoint, control, point));
+    pathApi.addSegment(this.path, quadraticBezier.create(this.currentPoint, control, point));
     vec3.copy(this.currentPoint, point);
     return this;
   }
@@ -72,7 +72,7 @@ export class PathWriter3 {
    */
   cubicTo(control1: ReadonlyVec3, control2: ReadonlyVec3, point: ReadonlyVec3): this {
     if (!this.currentPoint) return this.moveTo(point);
-    path3.addSegment(this.path, cubicBezier3.create(this.currentPoint, control1, control2, point));
+    pathApi.addSegment(this.path, cubicBezier.create(this.currentPoint, control1, control2, point));
     vec3.copy(this.currentPoint, point);
     return this;
   }
@@ -93,7 +93,7 @@ export class PathWriter3 {
    * @returns This writer.
    */
   clear(): this {
-    path3.clear(this.path);
+    pathApi.clear(this.path);
     this.currentPoint = null;
     this.subpathStart = null;
     return this;
@@ -103,7 +103,7 @@ export class PathWriter3 {
    * Returns the underlying mutable path.
    * @returns The writer's path.
    */
-  toPath(): Path3 {
+  toPath(): Path {
     return this.path;
   }
 }

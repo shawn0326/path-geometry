@@ -1,45 +1,31 @@
-export { line2 } from './segments/line2';
-export { line3 } from './segments/line3';
-export { quadraticBezier2 } from './segments/quadratic-bezier2';
-export { quadraticBezier3 } from './segments/quadratic-bezier3';
-export { cubicBezier2 } from './segments/cubic-bezier2';
-export { cubicBezier3 } from './segments/cubic-bezier3';
+export { line } from './segments/line';
+export { quadraticBezier } from './segments/quadratic-bezier';
+export { cubicBezier } from './segments/cubic-bezier';
 
-export { path2 } from './paths/path2';
-export { path3 } from './paths/path3';
+export { path } from './paths/path';
 
 export { tube } from './geometries/tube';
 export { ribbon } from './geometries/ribbon';
 
-export { PathWriter2 } from './writers/PathWriter2';
-export { PathWriter3 } from './writers/PathWriter3';
-
-export { normal2 } from './frames/normal2';
-export { frame3 } from './frames/frame3';
+export { PathWriter } from './writers/PathWriter';
 
 export type {
   BeveledCurveOptions,
-  BuildFramesOptions3,
+  BuildFramesOptions,
   BuildRibbonOptions,
   BuildTubeOptions,
-  CubicBezierSegment2,
-  CubicBezierSegment3,
-  GeometryData3,
-  LineSegment2,
-  LineSegment3,
-  Path2,
-  Path3,
-  PathFrames3,
+  CubicBezierSegment,
+  GeometryData,
+  LineSegment,
+  Path,
+  PathFrames,
   PointPreprocessOptions,
   PolylineOptions,
-  QuadraticBezierSegment2,
-  QuadraticBezierSegment3,
-  ReadonlyVector2,
-  ReadonlyVector3,
+  QuadraticBezierSegment,
+  ReadonlyVector,
   RibbonGeometryData,
   RibbonSide,
-  Segment2,
-  Segment3,
+  Segment,
   SmoothCurveOptions,
   TubeGeometryData
 } from './types';

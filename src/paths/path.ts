@@ -1,14 +1,13 @@
 import { vec3 } from 'gl-matrix';
 import type { ReadonlyVec3 } from 'gl-matrix';
 import type { BeveledCurveOptions, BuildFramesOptions, Path, PathFrames, PointPreprocessOptions, PolylineOptions, Segment, SmoothCurveOptions } from '../types';
-import { cubicBezier } from '../segments/cubic-bezier3';
-import { line } from '../segments/line3';
-import { quadraticBezier } from '../segments/quadratic-bezier3';
-import { segmentPointAt } from '../segments/shared';
+import { cubicBezier } from '../segments/cubic-bezier';
+import { line } from '../segments/line';
+import { quadraticBezier } from '../segments/quadratic-bezier';
+import { getSegmentLength, mapUToT, markSegmentDirty, segmentOps, segmentPointAt, segmentTangentAt } from '../segments/shared';
 import { initialNormal3, orthonormalize3, transportNormal3 } from '../utils/frame';
 import { clamp, EPSILON } from '../utils/math';
 import { rotateAroundAxis } from '../utils/rotate';
-import { getPathLength, getPathLengths, markPathDirty, pathPointAtDistance, pathTangentAtDistance } from './path-common';
 
 const _p3a = vec3.create();
 const _p3b = vec3.create();
@@ -62,6 +61,73 @@ function normalizeOrFallback(out: vec3, fallback?: ReadonlyVec3): vec3 {
     return out;
   }
   return vec3.normalize(out, out);
+}
+
+function markPathDirty(path: Path, recursive = false): void {
+  path._needsUpdate = true;
+  if (path._metrics) path._metrics.needsUpdate = true;
+  if (recursive) {
+    for (const segment of path.segments) {
+      markSegmentDirty(segment);
+    }
+  }
+}
+
+function getPathLengths(path: Path): number[] {
+  const metrics = path._metrics;
+  if (metrics && metrics.segmentCount === path.segments.length && !metrics.needsUpdate && !path._needsUpdate) {
+    return metrics.lengths;
+  }
+  const lengths: number[] = [];
+  let sum = 0;
+  for (const segment of path.segments) {
+    sum += getSegmentLength(segment, segmentOps);
+    lengths.push(sum);
+  }
+  path._metrics = { lengths, totalLength: sum, segmentCount: path.segments.length, needsUpdate: false };
+  path._needsUpdate = false;
+  return lengths;
+}
+
+function getPathLength(path: Path): number {
+  const lengths = getPathLengths(path);
+  return lengths[lengths.length - 1] ?? 0;
+}
+
+function findSegmentDistance(lengths: number[], distance: number): { index: number; localDistance: number } {
+  if (lengths.length === 0) return { index: -1, localDistance: 0 };
+  const total = lengths[lengths.length - 1] ?? 0;
+  const d = clamp(distance, 0, total);
+  for (let i = 0; i < lengths.length; i++) {
+    const current = lengths[i] ?? 0;
+    if (current >= d) {
+      const previous = i === 0 ? 0 : lengths[i - 1] ?? 0;
+      return { index: i, localDistance: d - previous };
+    }
+  }
+  return { index: lengths.length - 1, localDistance: total - (lengths[lengths.length - 2] ?? 0) };
+}
+
+function pathPointAtDistance(out: vec3, path: Path, distance: number): vec3 {
+  const lengths = getPathLengths(path);
+  const found = findSegmentDistance(lengths, distance);
+  const segment = path.segments[found.index];
+  if (!segment) return out;
+  const segmentLength = getSegmentLength(segment, segmentOps);
+  const u = segmentLength === 0 ? 0 : found.localDistance / segmentLength;
+  const t = segment.type === 'line' ? u : mapUToT(segment, u, found.localDistance, segmentOps);
+  return segmentPointAt(out, segment, t);
+}
+
+function pathTangentAtDistance(out: vec3, path: Path, distance: number): vec3 {
+  const lengths = getPathLengths(path);
+  const found = findSegmentDistance(lengths, distance);
+  const segment = path.segments[found.index];
+  if (!segment) return out;
+  const segmentLength = getSegmentLength(segment, segmentOps);
+  const u = segmentLength === 0 ? 0 : found.localDistance / segmentLength;
+  const t = segment.type === 'line' ? u : mapUToT(segment, u, found.localDistance, segmentOps);
+  return segmentTangentAt(out, segment, t);
 }
 
 /**

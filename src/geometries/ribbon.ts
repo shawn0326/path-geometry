@@ -1,6 +1,6 @@
 import { vec3 } from 'gl-matrix';
 import type { ReadonlyVec3 } from 'gl-matrix';
-import type { BuildRibbonOptions, RibbonGeometryData, RibbonSide, PathFrames3 } from '../types';
+import type { BuildRibbonOptions, RibbonGeometryData, RibbonSide, PathFrames } from '../types';
 
 const DEFAULT_WIDTH = 0.1;
 
@@ -100,7 +100,7 @@ export const ribbon = {
    * Build renderer-neutral indexed ribbon geometry.
    * 构建与渲染器无关的索引带状几何数据。
    */
-  build(frames: PathFrames3, options: BuildRibbonOptions = {}): RibbonGeometryData {
+  build(frames: PathFrames, options: BuildRibbonOptions = {}): RibbonGeometryData {
     const geometry = createGeometry();
     const frameLength = frames.points.length;
 

@@ -1,4 +1,4 @@
-import type { vec2, vec3, ReadonlyVec2, ReadonlyVec3 } from 'gl-matrix';
+import type { vec3, ReadonlyVec3 } from 'gl-matrix';
 
 /** @internal */
 export interface SegmentMetrics {
@@ -22,58 +22,10 @@ export interface SegmentBase {
 }
 
 /**
- * A 2D straight line segment.
- * 二维直线 segment。
- */
-export interface LineSegment2 extends SegmentBase {
-  type: 'line';
-  /** Start point. */
-  p0: vec2;
-  /** End point. */
-  p1: vec2;
-}
-
-/**
- * A 2D quadratic Bezier segment.
- * 二维二次 Bezier segment。
- */
-export interface QuadraticBezierSegment2 extends SegmentBase {
-  type: 'quadratic-bezier';
-  /** Start point. */
-  p0: vec2;
-  /** Control point. */
-  p1: vec2;
-  /** End point. */
-  p2: vec2;
-}
-
-/**
- * A 2D cubic Bezier segment.
- * 二维三次 Bezier segment。
- */
-export interface CubicBezierSegment2 extends SegmentBase {
-  type: 'cubic-bezier';
-  /** Start point. */
-  p0: vec2;
-  /** First control point. */
-  p1: vec2;
-  /** Second control point. */
-  p2: vec2;
-  /** End point. */
-  p3: vec2;
-}
-
-/**
- * Any supported 2D segment.
- * 任意受支持的二维 segment。
- */
-export type Segment2 = LineSegment2 | QuadraticBezierSegment2 | CubicBezierSegment2;
-
-/**
  * A 3D straight line segment.
  * 三维直线 segment。
  */
-export interface LineSegment3 extends SegmentBase {
+export interface LineSegment extends SegmentBase {
   type: 'line';
   /** Start point. */
   p0: vec3;
@@ -85,7 +37,7 @@ export interface LineSegment3 extends SegmentBase {
  * A 3D quadratic Bezier segment.
  * 三维二次 Bezier segment。
  */
-export interface QuadraticBezierSegment3 extends SegmentBase {
+export interface QuadraticBezierSegment extends SegmentBase {
   type: 'quadratic-bezier';
   /** Start point. */
   p0: vec3;
@@ -99,7 +51,7 @@ export interface QuadraticBezierSegment3 extends SegmentBase {
  * A 3D cubic Bezier segment.
  * 三维三次 Bezier segment。
  */
-export interface CubicBezierSegment3 extends SegmentBase {
+export interface CubicBezierSegment extends SegmentBase {
   type: 'cubic-bezier';
   /** Start point. */
   p0: vec3;
@@ -115,7 +67,7 @@ export interface CubicBezierSegment3 extends SegmentBase {
  * Any supported 3D segment.
  * 任意受支持的三维 segment。
  */
-export type Segment3 = LineSegment3 | QuadraticBezierSegment3 | CubicBezierSegment3;
+export type Segment = LineSegment | QuadraticBezierSegment | CubicBezierSegment;
 
 /** @internal */
 export interface PathMetrics {
@@ -126,25 +78,12 @@ export interface PathMetrics {
 }
 
 /**
- * A 2D path made of ordered 2D segments.
- * 由有序二维 segment 组成的 path。
- */
-export interface Path2 {
-  /** Ordered path segments. */
-  segments: Segment2[];
-  /** @internal */
-  _metrics?: PathMetrics;
-  /** @internal */
-  _needsUpdate?: boolean;
-}
-
-/**
  * A 3D path made of ordered 3D segments.
  * 由有序三维 segment 组成的 path。
  */
-export interface Path3 {
+export interface Path {
   /** Ordered path segments. */
-  segments: Segment3[];
+  segments: Segment[];
   /** @internal */
   _metrics?: PathMetrics;
   /** @internal */
@@ -199,7 +138,7 @@ export interface PointPreprocessOptions {
  * Frame data sampled from a 3D path for mesh generation.
  * 为网格生成从三维 path 采样得到的 frame 数据。
  */
-export interface PathFrames3 {
+export interface PathFrames {
   /** Sampled path points. */
   points: vec3[];
   /** Unit tangents at sampled points. */
@@ -224,13 +163,13 @@ export interface PathFrames3 {
  * Options for building 3D path frames.
  * 构建三维 path frame 的选项。
  */
-export interface BuildFramesOptions3 {
+export interface BuildFramesOptions {
   /** Initial normal direction. When omitted, a stable perpendicular axis is chosen. */
   initialNormal?: ReadonlyVec3 | null;
   /** Number of samples per non-line segment. Line segments always use one division. */
   divisions?: number;
   /** Use parallel-transport frame propagation. */
-  frenet?: boolean;
+  transport?: boolean;
   /** Match t3d's line-to-curve tangent correction behavior. */
   fixLine?: boolean;
   /** Treat the generated frame sequence as closed. */
@@ -241,7 +180,7 @@ export interface BuildFramesOptions3 {
  * Renderer-neutral indexed 3D geometry buffers.
  * 与渲染器无关的三维索引几何数据。
  */
-export interface GeometryData3 {
+export interface GeometryData {
   /** Flat XYZ vertex positions. */
   positions: number[];
   /** Flat XYZ vertex normals. */
@@ -258,13 +197,13 @@ export interface GeometryData3 {
  * Geometry buffers generated for a tube along a 3D path.
  * 沿三维 path 生成的管状几何数据。
  */
-export interface TubeGeometryData extends GeometryData3 {}
+export interface TubeGeometryData extends GeometryData {}
 
 /**
  * Geometry buffers generated for a ribbon along a 3D path.
  * 沿三维 path 生成的带状几何数据。
  */
-export interface RibbonGeometryData extends GeometryData3 {}
+export interface RibbonGeometryData extends GeometryData {}
 
 /**
  * Options for building tube geometry from 3D path frames.
@@ -302,13 +241,7 @@ export interface BuildRibbonOptions {
 }
 
 /**
- * Read-only 2D vector input accepted by path-math APIs.
- * path-math API 接受的只读二维向量输入。
- */
-export type ReadonlyVector2 = ReadonlyVec2;
-
-/**
  * Read-only 3D vector input accepted by path-math APIs.
  * path-math API 接受的只读三维向量输入。
  */
-export type ReadonlyVector3 = ReadonlyVec3;
+export type ReadonlyVector = ReadonlyVec3;

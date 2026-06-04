@@ -1,5 +1,5 @@
-import { vec2, vec3 } from 'gl-matrix';
-import type { Segment2, Segment3, SegmentMetrics } from '../types';
+import { vec3 } from 'gl-matrix';
+import type { Segment, SegmentMetrics } from '../types';
 import { clamp, EPSILON } from '../utils/math';
 
 export type SegmentOps<S, V> = {
@@ -125,28 +125,7 @@ export function mapUToT<S extends { arcLengthDivisions?: number; _metrics?: Segm
   return (i + (targetArcLength - lengthBefore) / segmentLength) / (il - 1);
 }
 
-export function segment2PointAt(out: vec2, segment: Segment2, t: number): vec2 {
-  switch (segment.type) {
-    case 'line':
-      out[0] = segment.p0[0] + (segment.p1[0] - segment.p0[0]) * t;
-      out[1] = segment.p0[1] + (segment.p1[1] - segment.p0[1]) * t;
-      return out;
-    case 'quadratic-bezier': {
-      const k = 1 - t;
-      out[0] = k * k * segment.p0[0] + 2 * k * t * segment.p1[0] + t * t * segment.p2[0];
-      out[1] = k * k * segment.p0[1] + 2 * k * t * segment.p1[1] + t * t * segment.p2[1];
-      return out;
-    }
-    case 'cubic-bezier': {
-      const k = 1 - t;
-      out[0] = k * k * k * segment.p0[0] + 3 * k * k * t * segment.p1[0] + 3 * k * t * t * segment.p2[0] + t * t * t * segment.p3[0];
-      out[1] = k * k * k * segment.p0[1] + 3 * k * k * t * segment.p1[1] + 3 * k * t * t * segment.p2[1] + t * t * t * segment.p3[1];
-      return out;
-    }
-  }
-}
-
-export function segment3PointAt(out: vec3, segment: Segment3, t: number): vec3 {
+export function segmentPointAt(out: vec3, segment: Segment, t: number): vec3 {
   switch (segment.type) {
     case 'line':
       out[0] = segment.p0[0] + (segment.p1[0] - segment.p0[0]) * t;
@@ -170,31 +149,7 @@ export function segment3PointAt(out: vec3, segment: Segment3, t: number): vec3 {
   }
 }
 
-export function segment2TangentAt(out: vec2, segment: Segment2, t: number): vec2 {
-  switch (segment.type) {
-    case 'line':
-      vec2.sub(out, segment.p1, segment.p0);
-      break;
-    case 'quadratic-bezier':
-      out[0] = 2 * (1 - t) * (segment.p1[0] - segment.p0[0]) + 2 * t * (segment.p2[0] - segment.p1[0]);
-      out[1] = 2 * (1 - t) * (segment.p1[1] - segment.p0[1]) + 2 * t * (segment.p2[1] - segment.p1[1]);
-      break;
-    case 'cubic-bezier': {
-      const k = 1 - t;
-      out[0] = 3 * k * k * (segment.p1[0] - segment.p0[0]) + 6 * k * t * (segment.p2[0] - segment.p1[0]) + 3 * t * t * (segment.p3[0] - segment.p2[0]);
-      out[1] = 3 * k * k * (segment.p1[1] - segment.p0[1]) + 6 * k * t * (segment.p2[1] - segment.p1[1]) + 3 * t * t * (segment.p3[1] - segment.p2[1]);
-      break;
-    }
-  }
-  if (vec2.len(out) <= EPSILON) {
-    out[0] = 1;
-    out[1] = 0;
-    return out;
-  }
-  return vec2.normalize(out, out);
-}
-
-export function segment3TangentAt(out: vec3, segment: Segment3, t: number): vec3 {
+export function segmentTangentAt(out: vec3, segment: Segment, t: number): vec3 {
   switch (segment.type) {
     case 'line':
       vec3.sub(out, segment.p1, segment.p0);
@@ -221,16 +176,9 @@ export function segment3TangentAt(out: vec3, segment: Segment3, t: number): vec3
   return vec3.normalize(out, out);
 }
 
-export const segment2Ops: SegmentOps<Segment2, vec2> = {
-  pointAt: segment2PointAt,
-  tangentAt: segment2TangentAt,
-  distance: vec2.distance,
-  createVector: vec2.create
-};
-
-export const segment3Ops: SegmentOps<Segment3, vec3> = {
-  pointAt: segment3PointAt,
-  tangentAt: segment3TangentAt,
+export const segmentOps: SegmentOps<Segment, vec3> = {
+  pointAt: segmentPointAt,
+  tangentAt: segmentTangentAt,
   distance: vec3.distance,
   createVector: vec3.create
 };
