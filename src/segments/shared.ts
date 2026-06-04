@@ -1,6 +1,6 @@
 import { vec3 } from 'gl-matrix';
 import type { Segment, SegmentMetrics } from '../types';
-import { clamp, EPSILON } from '../utils/math';
+import { clamp, EPSILON } from '../helper';
 
 export type SegmentOps<S, V> = {
   pointAt(out: V, segment: S, t: number): V;

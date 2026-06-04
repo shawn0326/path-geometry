@@ -1,7 +1,7 @@
 import { vec3 } from 'gl-matrix';
 import type { ReadonlyVec3 } from 'gl-matrix';
-import type { BuildTubeOptions, PathFrames, TubeGeometryData } from '../types';
-import { rotateAroundAxis } from '../utils/rotate';
+import type { BuildTubeOptions, PathFrames, TubeGeometryData } from './types';
+import { rotateAroundAxis } from './helper';
 
 const TAU = Math.PI * 2;
 const DEFAULT_RADIUS = 0.1;
@@ -76,15 +76,7 @@ function pushDuplicateVertex(
   geometry.uvs2.push(geometry.uvs2[uvOffset]!, geometry.uvs2[uvOffset + 1]!);
 }
 
-/**
- * Builds tube geometry from 3D path frames.
- * 从三维 path frame 构建管状几何。
- */
 export const tube = {
-  /**
-   * Build renderer-neutral indexed tube geometry.
-   * 构建与渲染器无关的索引管状几何数据。
-   */
   build(frames: PathFrames, options: BuildTubeOptions = {}): TubeGeometryData {
     const geometry = createGeometry();
     const frameLength = frames.points.length;

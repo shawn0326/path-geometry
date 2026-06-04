@@ -2,7 +2,7 @@ import { vec3 } from 'gl-matrix';
 import type { ReadonlyVec3 } from 'gl-matrix';
 import type { QuadraticBezierSegment, Segment } from '../types';
 import { getSegmentLength, getSegmentLengths, getSegmentPoints, getSegmentSpacedPoints, mapUToT, markSegmentDirty, segmentOps } from './shared';
-import { EPSILON } from '../utils/math';
+import { EPSILON } from '../helper';
 
 /**
  * Operations for 3D quadratic Bezier segments.

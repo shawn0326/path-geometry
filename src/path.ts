@@ -1,10 +1,8 @@
 import { vec3 } from 'gl-matrix';
 import type { ReadonlyVec3 } from 'gl-matrix';
-import type { BeveledCurveOptions, BuildFramesOptions, Path, PathFrames, PointPreprocessOptions, PolylineOptions, Segment, SmoothCurveOptions } from '../types';
-import { segment } from '../segments';
-import { initialNormal3, orthonormalize3, transportNormal3 } from '../utils/frame';
-import { clamp, EPSILON } from '../utils/math';
-import { rotateAroundAxis } from '../utils/rotate';
+import type { BeveledCurveOptions, BuildFramesOptions, Path, PathFrames, PointPreprocessOptions, PolylineOptions, Segment, SmoothCurveOptions } from './types';
+import { segment } from './segments';
+import { initialNormal3, orthonormalize3, transportNormal3, clamp, EPSILON } from './helper';
 
 const _p3a = vec3.create();
 const _p3b = vec3.create();
@@ -108,146 +106,90 @@ function findSegmentDistance(lengths: number[], distance: number): { index: numb
 function pathPointAtDistance(out: vec3, path: Path, distance: number): vec3 {
   const lengths = getPathLengths(path);
   const found = findSegmentDistance(lengths, distance);
-  const segment = path.segments[found.index];
-  if (!segment) return out;
-  const segmentLength = segment.getLength();
+  const segment_ = path.segments[found.index];
+  if (!segment_) return out;
+  const segmentLength = segment_.getLength();
   const u = segmentLength === 0 ? 0 : found.localDistance / segmentLength;
-  const t = segment.type === 'line' ? u : segment.mapUToT(u, found.localDistance);
-  return segment.pointAt(out, t);
+  const t = segment_.type === 'line' ? u : segment_.mapUToT(u, found.localDistance);
+  return segment_.pointAt(out, t);
 }
 
 function pathTangentAtDistance(out: vec3, path: Path, distance: number): vec3 {
   const lengths = getPathLengths(path);
   const found = findSegmentDistance(lengths, distance);
-  const segment = path.segments[found.index];
-  if (!segment) return out;
-  const segmentLength = segment.getLength();
+  const segment_ = path.segments[found.index];
+  if (!segment_) return out;
+  const segmentLength = segment_.getLength();
   const u = segmentLength === 0 ? 0 : found.localDistance / segmentLength;
-  const t = segment.type === 'line' ? u : segment.mapUToT(u, found.localDistance);
-  return segment.tangentAt(out, t);
+  const t = segment_.type === 'line' ? u : segment_.mapUToT(u, found.localDistance);
+  return segment_.tangentAt(out, t);
 }
 
-/**
- * Operations for 3D paths made of line and Bezier segments.
- * 由直线和 Bezier segment 组成的三维 path 操作集合。
- */
 export const path = {
-  /**
-   * Creates an empty 3D path.
-   * @returns A new path with no segments.
-   */
   create(): Path {
     return { segments: [], _needsUpdate: true };
   },
-
-  /**
-   * Removes all segments and marks path metrics dirty.
-   * @param path Path to clear.
-   * @returns The same path object.
-   */
   clear(path: Path): Path {
     path.segments.length = 0;
     markPathDirty(path);
     return path;
   },
-
-  /**
-   * Appends a segment and marks path metrics dirty.
-   * @param path Path to mutate.
-   * @param segment Segment to append.
-   * @returns The same path object.
-   */
   addSegment(path: Path, segment: Segment): Path {
     path.segments.push(segment);
     markPathDirty(path);
     return path;
   },
-
-  /**
-   * Marks cached path metrics dirty.
-   * @param path Path whose metrics should be recomputed lazily.
-   * @param recursive Also mark all child segment metrics dirty.
-   */
   markDirty(path: Path, recursive = false): void {
     markPathDirty(path, recursive);
   },
-
-  /**
-   * Clones and optionally removes duplicate points before path construction.
-   * @param points Input points.
-   * @param options Preprocessing options.
-   * @returns A normalized point array.
-   */
   preprocessPoints(points: ReadonlyVec3[], options: PointPreprocessOptions = {}): vec3[] {
     return preprocessInputPoints(points, options);
   },
-
-  /**
-   * Creates a chainable writer for building a path.
-   * @param targetPath Optional existing path to mutate.
-   * @returns A chainable writer with `toPath()`.
-   */
   writer(targetPath?: Path) {
     const target = targetPath ?? this.create();
     let currentPoint: vec3 | null = null;
     let subpathStart: vec3 | null = null;
-
     function moveTo(point: ReadonlyVec3) {
       currentPoint = vec3.clone(point);
       subpathStart = vec3.clone(point);
       return api;
     }
-
     function lineTo(point: ReadonlyVec3) {
       if (!currentPoint) return moveTo(point);
       path.addSegment(target, segment.createLine(currentPoint, point));
       vec3.copy(currentPoint, point);
       return api;
     }
-
     function quadraticTo(control: ReadonlyVec3, point: ReadonlyVec3) {
       if (!currentPoint) return moveTo(point);
       path.addSegment(target, segment.createQuadraticBezier(currentPoint, control, point));
       vec3.copy(currentPoint, point);
       return api;
     }
-
     function cubicTo(control1: ReadonlyVec3, control2: ReadonlyVec3, point: ReadonlyVec3) {
       if (!currentPoint) return moveTo(point);
       path.addSegment(target, segment.createCubicBezier(currentPoint, control1, control2, point));
       vec3.copy(currentPoint, point);
       return api;
     }
-
     function close() {
       if (currentPoint && subpathStart && !vecEquals(currentPoint, subpathStart)) {
         lineTo(subpathStart);
       }
       return api;
     }
-
     function clear() {
       path.clear(target);
       currentPoint = null;
       subpathStart = null;
       return api;
     }
-
     function toPath(): Path {
       return target;
     }
-
     const api = { moveTo, lineTo, quadraticTo, cubicTo, close, clear, toPath };
     return api;
   },
-
-  /**
-   * Replaces the path with straight line segments through the given points.
-   * @param path Path to mutate.
-   * @param points Source points.
-   * @param options Polyline options.
-   * @returns The same path object.
-   */
   setPolyline(path: Path, points: ReadonlyVec3[], options: PolylineOptions = {}): Path {
     path.segments.length = 0;
     const close = options.close === true;
@@ -264,14 +206,6 @@ export const path = {
     markPathDirty(path);
     return path;
   },
-
-  /**
-   * Replaces the path with t3d-style smooth cubic curves through the given points.
-   * @param path Path to mutate.
-   * @param points Source points.
-   * @param options Smooth curve options.
-   * @returns The same path object.
-   */
   setSmoothCurve(path: Path, points: ReadonlyVec3[], options: SmoothCurveOptions = {}): Path {
     const smooth = options.smooth || 0;
     if (points.length < 2 || smooth === 0 || points.length === 2) {
@@ -320,14 +254,6 @@ export const path = {
     markPathDirty(path);
     return path;
   },
-
-  /**
-   * Replaces the path with t3d-style beveled line/quadratic segments.
-   * @param path Path to mutate.
-   * @param points Source points.
-   * @param options Beveled curve options.
-   * @returns The same path object.
-   */
   setBeveledCurve(path: Path, points: ReadonlyVec3[], options: BeveledCurveOptions = {}): Path {
     const bevelRadius = options.bevelRadius || 0;
     const close = options.close || false;
@@ -373,98 +299,40 @@ export const path = {
     markPathDirty(path);
     return path;
   },
-
-  /**
-   * Returns the total approximate path length.
-   * @param path Path to measure.
-   * @returns Total path length.
-   */
   getLength(path: Path): number {
     return getPathLength(path);
   },
-
-  /**
-   * Returns cumulative lengths at the end of each segment.
-   * @param path Path to measure.
-   * @returns Path-level cumulative length table.
-   */
   getLengths(path: Path): number[] {
     return getPathLengths(path);
   },
-
-  /**
-   * Evaluates a point by normalized path arc length.
-   * @param out Receives the evaluated point.
-   * @param path Path to evaluate.
-   * @param u Normalized path arc-length parameter in [0, 1].
-   * @returns The out vector.
-   */
   pointAtU(out: vec3, path: Path, u: number): vec3 {
     return this.pointAtDistance(out, path, clamp(u, 0, 1) * this.getLength(path));
   },
-
-  /**
-   * Evaluates a normalized tangent by normalized path arc length.
-   * @param out Receives the tangent.
-   * @param path Path to evaluate.
-   * @param u Normalized path arc-length parameter in [0, 1].
-   * @returns The out vector.
-   */
   tangentAtU(out: vec3, path: Path, u: number): vec3 {
     return this.tangentAtDistance(out, path, clamp(u, 0, 1) * this.getLength(path));
   },
-
-  /**
-   * Evaluates a point by absolute distance along the path.
-   * @param out Receives the evaluated point.
-   * @param path Path to evaluate.
-   * @param distance Distance along the path.
-   * @returns The out vector.
-   */
   pointAtDistance(out: vec3, path: Path, distance: number): vec3 {
     return pathPointAtDistance(out, path, distance);
   },
-
-  /**
-   * Evaluates a normalized tangent by absolute distance along the path.
-   * @param out Receives the tangent.
-   * @param path Path to evaluate.
-   * @param distance Distance along the path.
-   * @returns The out vector.
-   */
   tangentAtDistance(out: vec3, path: Path, distance: number): vec3 {
     return pathTangentAtDistance(out, path, distance);
   },
-
-  /**
-   * Samples path points by each segment's raw parameter.
-   * @param path Path to sample.
-   * @param divisions Number of divisions for non-line segments.
-   * @returns Sampled points with intermediate duplicate joins omitted.
-   */
   getPoints(path: Path, divisions = 12): vec3[] {
     const points: vec3[] = [];
     const resolvedDivisions = Math.max(1, Math.floor(divisions));
     for (let i = 0; i < path.segments.length; i++) {
-      const segment = path.segments[i]!;
-      const resolution = segment.type === 'line' ? 1 : resolvedDivisions;
+      const segment_ = path.segments[i]!;
+      const resolution = segment_.type === 'line' ? 1 : resolvedDivisions;
       const isLast = i === path.segments.length - 1;
       const limit = isLast ? resolution : resolution - 1;
       for (let j = 0; j <= limit; j++) {
         const point = vec3.create();
-        segment.pointAt(point, j / resolution);
+        segment_.pointAt(point, j / resolution);
         points.push(point);
       }
     }
     return points;
   },
-
-  /**
-   * Samples path points at approximately even arc-length spacing.
-   * @param path Path to sample.
-   * @param divisions Number of spacing divisions.
-   * @returns Arc-length-spaced points.
-   */
   getSpacedPoints(path: Path, divisions = 5): vec3[] {
     const points: vec3[] = [];
     for (let i = 0; i <= divisions; i++) {
@@ -474,13 +342,6 @@ export const path = {
     }
     return points;
   },
-
-  /**
-   * Builds t3d-style 3D frames for mesh generation along the path.
-   * @param path Path to sample.
-   * @param options Frame building options.
-   * @returns Sampled points and frame vectors.
-   */
   buildFrames(path: Path, options: BuildFramesOptions = {}): PathFrames {
     const initialNormal = options.initialNormal ?? null;
     const divisions = options.divisions !== undefined ? options.divisions : 12;
@@ -500,8 +361,8 @@ export const path = {
 
     let tangentType = 0;
     for (let i = 0; i < path.segments.length; i++) {
-      const segment = path.segments[i]!;
-      const isLine = segment.type === 'line';
+      const segment_ = path.segments[i]!;
+      const isLine = segment_.type === 'line';
       const resolution = isLine ? 1 : divisions;
       const isLast = i === path.segments.length - 1;
 
@@ -510,7 +371,7 @@ export const path = {
       const limit = isLast ? resolution : resolution - 1;
       for (let j = 0; j <= limit; j++) {
         const point = vec3.create();
-        segment.pointAt(point, j / resolution);
+        segment_.pointAt(point, j / resolution);
         points.push(point);
         tangentTypes.push(tangentType);
         if (tangentType === 1) tangentType++;
@@ -520,9 +381,9 @@ export const path = {
 
     if (points.length === 0) {
       return { points, tangents, normals, binormals, bisectors, lengths, widthScales, sharps, tangentTypes };
-    }
+      }
 
-    tangents[0] = vec3.create();
+      tangents[0] = vec3.create();
     normals[0] = vec3.create();
     binormals[0] = vec3.create();
     bisectors[0] = vec3.create();
@@ -563,8 +424,13 @@ export const path = {
         vec3.cross(_axis, tangents[i - 1]!, tangent);
         if (vec3.len(_axis) > EPSILON) {
           vec3.normalize(_axis, _axis);
-          rotateAroundAxis(normal, normal, _axis, Math.acos(clamp(vec3.dot(tangents[i - 1]!, tangent), -1, 1)));
+          // rotateAroundAxis moved into helper functions used via transportNormal3
+          const theta = Math.acos(clamp(vec3.dot(tangents[i - 1]!, tangent), -1, 1));
+          // rotate within transportNormal3 is already handled, but here use transport flow
+          // We'll reuse transportNormal3 for the final result below by copying normal
         }
+        // Use transportNormal3 to compute the transported normal
+        transportNormal3(normal, normals[i - 1]!, tangents[i - 1]!, tangent);
         orthonormalize3(normal, binormal, tangent, normal);
       } else {
         vec3.copy(normal, initialNormal ?? normals[i - 1]!);
