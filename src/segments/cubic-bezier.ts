@@ -7,6 +7,59 @@ import { getSegmentLength, getSegmentLengths, getSegmentPoints, getSegmentSpaced
  * Operations for 3D cubic Bezier segments.
  * 三维三次 Bezier segment 的操作集合。
  */
+export class CubicBezierSegmentImpl implements CubicBezierSegment {
+  type: 'cubic-bezier' = 'cubic-bezier';
+  p0: vec3;
+  p1: vec3;
+  p2: vec3;
+  p3: vec3;
+  arcLengthDivisions = 200;
+  _needsUpdate = true;
+
+  constructor(p0: ReadonlyVec3 = vec3.create(), p1: ReadonlyVec3 = vec3.create(), p2: ReadonlyVec3 = vec3.create(), p3: ReadonlyVec3 = vec3.create()) {
+    this.p0 = vec3.clone(p0);
+    this.p1 = vec3.clone(p1);
+    this.p2 = vec3.clone(p2);
+    this.p3 = vec3.clone(p3);
+  }
+
+  pointAt(out: vec3, t: number): vec3 {
+    return segmentPointAt(out, this, t);
+  }
+
+  pointAtU(out: vec3, u: number): vec3 {
+    return segmentPointAt(out, this, this.mapUToT(u));
+  }
+
+  tangentAt(out: vec3, t: number): vec3 {
+    return segmentTangentAt(out, this, t);
+  }
+
+  getLength(): number {
+    return getSegmentLength(this as Segment, segmentOps);
+  }
+
+  getLengths(divisions?: number): number[] {
+    return getSegmentLengths(this as Segment, divisions, segmentOps);
+  }
+
+  getPoints(divisions?: number): vec3[] {
+    return getSegmentPoints(this as Segment, divisions, segmentOps);
+  }
+
+  getSpacedPoints(divisions?: number): vec3[] {
+    return getSegmentSpacedPoints(this as Segment, divisions, segmentOps);
+  }
+
+  mapUToT(u: number, distance?: number): number {
+    return mapUToT(this as Segment, u, distance, segmentOps);
+  }
+
+  markDirty(): void {
+    markSegmentDirty(this);
+  }
+}
+
 export const cubicBezier = {
   /**
    * Creates a 3D cubic Bezier segment and clones the input points.
@@ -17,7 +70,7 @@ export const cubicBezier = {
    * @returns A new cubic Bezier segment.
    */
   create(p0: ReadonlyVec3 = vec3.create(), p1: ReadonlyVec3 = vec3.create(), p2: ReadonlyVec3 = vec3.create(), p3: ReadonlyVec3 = vec3.create()): CubicBezierSegment {
-    return { type: 'cubic-bezier', p0: vec3.clone(p0), p1: vec3.clone(p1), p2: vec3.clone(p2), p3: vec3.clone(p3), arcLengthDivisions: 200, _needsUpdate: true };
+    return new CubicBezierSegmentImpl(p0, p1, p2, p3);
   },
   /**
    * Evaluates the segment by raw Bezier parameter t.

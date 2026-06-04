@@ -7,6 +7,57 @@ import { getSegmentLength, getSegmentLengths, getSegmentPoints, getSegmentSpaced
  * Operations for 3D quadratic Bezier segments.
  * 三维二次 Bezier segment 的操作集合。
  */
+export class QuadraticBezierSegmentImpl implements QuadraticBezierSegment {
+  type: 'quadratic-bezier' = 'quadratic-bezier';
+  p0: vec3;
+  p1: vec3;
+  p2: vec3;
+  arcLengthDivisions = 200;
+  _needsUpdate = true;
+
+  constructor(p0: ReadonlyVec3 = vec3.create(), p1: ReadonlyVec3 = vec3.create(), p2: ReadonlyVec3 = vec3.create()) {
+    this.p0 = vec3.clone(p0);
+    this.p1 = vec3.clone(p1);
+    this.p2 = vec3.clone(p2);
+  }
+
+  pointAt(out: vec3, t: number): vec3 {
+    return segmentPointAt(out, this, t);
+  }
+
+  pointAtU(out: vec3, u: number): vec3 {
+    return segmentPointAt(out, this, this.mapUToT(u));
+  }
+
+  tangentAt(out: vec3, t: number): vec3 {
+    return segmentTangentAt(out, this, t);
+  }
+
+  getLength(): number {
+    return getSegmentLength(this as Segment, segmentOps);
+  }
+
+  getLengths(divisions?: number): number[] {
+    return getSegmentLengths(this as Segment, divisions, segmentOps);
+  }
+
+  getPoints(divisions?: number): vec3[] {
+    return getSegmentPoints(this as Segment, divisions, segmentOps);
+  }
+
+  getSpacedPoints(divisions?: number): vec3[] {
+    return getSegmentSpacedPoints(this as Segment, divisions, segmentOps);
+  }
+
+  mapUToT(u: number, distance?: number): number {
+    return mapUToT(this as Segment, u, distance, segmentOps);
+  }
+
+  markDirty(): void {
+    markSegmentDirty(this);
+  }
+}
+
 export const quadraticBezier = {
   /**
    * Creates a 3D quadratic Bezier segment and clones the input points.
@@ -16,7 +67,7 @@ export const quadraticBezier = {
    * @returns A new quadratic Bezier segment.
    */
   create(p0: ReadonlyVec3 = vec3.create(), p1: ReadonlyVec3 = vec3.create(), p2: ReadonlyVec3 = vec3.create()): QuadraticBezierSegment {
-    return { type: 'quadratic-bezier', p0: vec3.clone(p0), p1: vec3.clone(p1), p2: vec3.clone(p2), arcLengthDivisions: 200, _needsUpdate: true };
+    return new QuadraticBezierSegmentImpl(p0, p1, p2);
   },
   /**
    * Evaluates the segment by raw Bezier parameter t.

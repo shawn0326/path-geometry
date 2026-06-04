@@ -7,6 +7,55 @@ import { getSegmentLength, getSegmentLengths, getSegmentPoints, getSegmentSpaced
  * Operations for 3D straight line segments.
  * 三维直线 segment 的操作集合。
  */
+export class LineSegmentImpl implements LineSegment {
+  type: 'line' = 'line';
+  p0: vec3;
+  p1: vec3;
+  arcLengthDivisions = 1;
+  _needsUpdate = true;
+
+  constructor(p0: ReadonlyVec3 = vec3.create(), p1: ReadonlyVec3 = vec3.create()) {
+    this.p0 = vec3.clone(p0);
+    this.p1 = vec3.clone(p1);
+  }
+
+  pointAt(out: vec3, t: number): vec3 {
+    return segmentPointAt(out, this, t);
+  }
+
+  pointAtU(out: vec3, u: number): vec3 {
+    return segmentPointAt(out, this, u);
+  }
+
+  tangentAt(out: vec3, t: number): vec3 {
+    return segmentTangentAt(out, this, t);
+  }
+
+  getLength(): number {
+    return getSegmentLength(this as Segment, segmentOps);
+  }
+
+  getLengths(divisions?: number): number[] {
+    return getSegmentLengths(this as Segment, divisions ?? 1, segmentOps);
+  }
+
+  getPoints(divisions?: number): vec3[] {
+    return getSegmentPoints(this as Segment, divisions, segmentOps);
+  }
+
+  getSpacedPoints(divisions?: number): vec3[] {
+    return getSegmentSpacedPoints(this as Segment, divisions, segmentOps);
+  }
+
+  mapUToT(u: number, distance?: number): number {
+    return mapUToT(this as Segment, u, distance, segmentOps);
+  }
+
+  markDirty(): void {
+    markSegmentDirty(this);
+  }
+}
+
 export const line = {
   /**
    * Creates a 3D line segment and clones the input points.
@@ -15,7 +64,7 @@ export const line = {
    * @returns A new line segment.
    */
   create(p0: ReadonlyVec3 = vec3.create(), p1: ReadonlyVec3 = vec3.create()): LineSegment {
-    return { type: 'line', p0: vec3.clone(p0), p1: vec3.clone(p1), arcLengthDivisions: 1, _needsUpdate: true };
+    return new LineSegmentImpl(p0, p1);
   },
   /**
    * Evaluates the segment by raw parameter t.
