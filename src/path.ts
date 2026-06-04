@@ -162,26 +162,65 @@ function pathTangentAtDistance(out: vec3, path: Path, distance: number): vec3 {
   return segment_.tangentAt(out, t);
 }
 
+/**
+ * Path namespace.
+ * Create and manipulate 3D paths composed of segments, sample points and
+ * tangents, and build orthonormal frames for mesh generation.
+ *
+ * Path 命名空间。
+ * 创建和操作由 segment 组成的三维 path，采样点与切线，并为网格生成构建正交 frame。
+ *
+ * @example
+ * ```ts
+ * const p = path.create();
+ * path.addSegment(p, segment.createLine(p0, p1));
+ * const frames = path.buildFrames(p, { divisions: 20 });
+ * ```
+ */
 export const path = {
+  /**
+   * Create an empty path.
+   * 创建一个空 path。
+   */
   create(): Path {
     return { segments: [], _needsUpdate: true };
   },
+  /**
+   * Remove all segments from the path.
+   * 移除 path 中的所有 segment。
+   */
   clear(path: Path): Path {
     path.segments.length = 0;
     markPathDirty(path);
     return path;
   },
+  /**
+   * Append a segment to the path.
+   * 将一个 segment 添加到 path 末尾。
+   */
   addSegment(path: Path, segment: Segment): Path {
     path.segments.push(segment);
     markPathDirty(path);
     return path;
   },
+  /**
+   * Mark the path and optionally all its segments as needing recalculation.
+   * 标记 path（可选包含其所有 segment）需要重新计算。
+   */
   markDirty(path: Path, recursive = false): void {
     markPathDirty(path, recursive);
   },
+  /**
+   * Preprocess a raw point array (remove duplicates, handle closing).
+   * 预处理原始点数组（移除重复点、处理闭合）。
+   */
   preprocessPoints(points: ReadonlyVec3[], options: PointPreprocessOptions = {}): vec3[] {
     return preprocessInputPoints(points, options);
   },
+  /**
+   * Return a fluent writer that builds a path imperatively.
+   * 返回一个链式 writer，以命令式方式构建 path。
+   */
   writer(targetPath?: Path) {
     const target = targetPath ?? this.create();
     let currentPoint: vec3 | null = null;
@@ -227,6 +266,10 @@ export const path = {
     const api = { moveTo, lineTo, quadraticTo, cubicTo, close, clear, toPath };
     return api;
   },
+  /**
+   * Replace the path contents with a polyline through the given points.
+   * 用给定点的折线替换 path 内容。
+   */
   setPolyline(path: Path, points: ReadonlyVec3[], options: PolylineOptions = {}): Path {
     path.segments.length = 0;
     const close = options.close === true;
@@ -243,6 +286,10 @@ export const path = {
     markPathDirty(path);
     return path;
   },
+  /**
+   * Replace the path contents with t3d-style smooth cubic curves through the given points.
+   * 用 t3d 风格平滑三次曲线替换 path 内容。
+   */
   setSmoothCurve(path: Path, points: ReadonlyVec3[], options: SmoothCurveOptions = {}): Path {
     const smooth = options.smooth || 0;
     if (points.length < 2 || smooth === 0 || points.length === 2) {
@@ -291,6 +338,10 @@ export const path = {
     markPathDirty(path);
     return path;
   },
+  /**
+   * Replace the path contents with straight edges connected by beveled quadratic curves.
+   * 用直边加倒角二次曲线替换 path 内容。
+   */
   setBeveledCurve(path: Path, points: ReadonlyVec3[], options: BeveledCurveOptions = {}): Path {
     const bevelRadius = options.bevelRadius || 0;
     const close = options.close || false;
@@ -336,24 +387,52 @@ export const path = {
     markPathDirty(path);
     return path;
   },
+  /**
+   * Get the total arc length of the path.
+   * 获取 path 的总弧长。
+   */
   getLength(path: Path): number {
     return getPathLength(path);
   },
+  /**
+   * Get cumulative arc-length table across all segments.
+   * 获取跨所有 segment 的累计弧长表。
+   */
   getLengths(path: Path): number[] {
     return getPathLengths(path);
   },
+  /**
+   * Evaluate the point at normalized arc-length u ∈ [0, 1].
+   * 在弧长归一化参数 u ∈ [0, 1] 处求点。
+   */
   pointAtU(out: vec3, path: Path, u: number): vec3 {
     return this.pointAtDistance(out, path, clamp(u, 0, 1) * this.getLength(path));
   },
+  /**
+   * Evaluate the unit tangent at normalized arc-length u ∈ [0, 1].
+   * 在弧长归一化参数 u ∈ [0, 1] 处求单位切线。
+   */
   tangentAtU(out: vec3, path: Path, u: number): vec3 {
     return this.tangentAtDistance(out, path, clamp(u, 0, 1) * this.getLength(path));
   },
+  /**
+   * Evaluate the point at a given arc distance from the path start.
+   * 在距路径起点指定弧长处求点。
+   */
   pointAtDistance(out: vec3, path: Path, distance: number): vec3 {
     return pathPointAtDistance(out, path, distance);
   },
+  /**
+   * Evaluate the unit tangent at a given arc distance from the path start.
+   * 在距路径起点指定弧长处求单位切线。
+   */
   tangentAtDistance(out: vec3, path: Path, distance: number): vec3 {
     return pathTangentAtDistance(out, path, distance);
   },
+  /**
+   * Sample `divisions + 1` points evenly by raw parameter (non-arc-length).
+   * 按原始参数等间距采样 `divisions + 1` 个点（非弧长均匀）。
+   */
   getPoints(path: Path, divisions = 12): vec3[] {
     const points: vec3[] = [];
     const resolvedDivisions = Math.max(1, Math.floor(divisions));
@@ -370,6 +449,10 @@ export const path = {
     }
     return points;
   },
+  /**
+   * Sample `divisions + 1` arc-length evenly spaced points along the path.
+   * 沿 path 弧长均匀采样 `divisions + 1` 个点。
+   */
   getSpacedPoints(path: Path, divisions = 5): vec3[] {
     const points: vec3[] = [];
     for (let i = 0; i <= divisions; i++) {
@@ -379,6 +462,10 @@ export const path = {
     }
     return points;
   },
+  /**
+   * Build orthonormal 3D frames along the path for tube/ribbon mesh generation.
+   * 沿 path 构建正交 3D frame，用于管状/带状网格生成。
+   */
   buildFrames(path: Path, options: BuildFramesOptions = {}): PathFrames {
     const initialNormal = options.initialNormal ?? null;
     const divisions = options.divisions !== undefined ? options.divisions : 12;
