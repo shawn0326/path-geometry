@@ -1,7 +1,7 @@
-import { buildTube } from './tube';
-import { buildRibbon } from './ribbon';
+import { createTube } from './tube';
+import { createRibbon } from './ribbon';
 
 export const geometry = {
-  createTube: buildTube,
-  createRibbon: buildRibbon,
+  createTube,
+  createRibbon,
 };

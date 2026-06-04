@@ -76,7 +76,7 @@ function pushDuplicateVertex(
   geometry.uvs2.push(geometry.uvs2[uvOffset]!, geometry.uvs2[uvOffset + 1]!);
 }
 
-export function buildTube(frames: PathFrames, options: BuildTubeOptions = {}): TubeGeometryData {
+export function createTube(frames: PathFrames, options: BuildTubeOptions = {}): TubeGeometryData {
     const geometry = createGeometry();
     const frameLength = frames.points.length;
 

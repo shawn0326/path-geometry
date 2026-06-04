@@ -91,7 +91,7 @@ function pushSimplePair(
   geometry.uvs2.push(uvU2, 0, uvU2, 1);
 }
 
-export function buildRibbon(frames: PathFrames, options: BuildRibbonOptions = {}): RibbonGeometryData {
+export function createRibbon(frames: PathFrames, options: BuildRibbonOptions = {}): RibbonGeometryData {
     const geometry = createGeometry();
     const frameLength = frames.points.length;
 
