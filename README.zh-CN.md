@@ -38,17 +38,16 @@ GitHub Actions workflow 会在每次成功推送到 `master` 后，自动把 `do
 - `setSmoothCurve` 生成穿过这些点的平滑 cubic curve。
 - `setBeveledCurve` 保留直线段，并用 quadratic bevel 对拐角做圆角处理。
 
-对于平面数据，使用 `z = 0` 的 `vec3` 点输入，而不是单独的 2D API。
+对于平面数据，使用 `z = 0` 的三维点输入，而不是单独的 2D API。输入向量既可以是 `gl-matrix` 的 `vec3`，也可以是普通 `[x, y, z]` 数组。
 
 ```ts
-import { vec3 } from 'gl-matrix';
 import { path } from 'path-math';
 
 const rawPoints = [
-  vec3.fromValues(0, 0, 0),
-  vec3.fromValues(10, 0, 0),
-  vec3.fromValues(10, 10, 0),
-  vec3.fromValues(20, 10, 0)
+  [0, 0, 0],
+  [10, 0, 0],
+  [10, 10, 0],
+  [20, 10, 0]
 ];
 
 const route = path.create();
@@ -78,12 +77,12 @@ import { path } from 'path-math';
 const writer = path.writer();
 
 const route = writer
-  .moveTo(vec3.fromValues(0, 0, 0))
-  .lineTo(vec3.fromValues(10, 0, 0))
+  .moveTo([0, 0, 0])
+  .lineTo([10, 0, 0])
   .cubicTo(
-    vec3.fromValues(15, 5, 0),
-    vec3.fromValues(20, 5, 0),
-    vec3.fromValues(30, 0, 0)
+    [15, 5, 0],
+    [20, 5, 0],
+    [30, 0, 0]
   )
   .toPath();
 
@@ -136,7 +135,7 @@ const evenlySpaced = path.getSpacedPoints(route, 32);
 ```ts
 const frames = path.buildFrames(route, {
   divisions: 24,
-  initialNormal: vec3.fromValues(0, 0, 1),
+  initialNormal: [0, 0, 1],
   transport: true,
   close: false
 });
@@ -159,19 +158,18 @@ for (let i = 0; i < frames.points.length; i++) {
 两个 builder 都返回普通数组：`positions`、`normals`、`uvs`、`uvs2` 和 `indices`。你可以按需要把它们转换成 t3d、three.js、WebGPU 或自定义 renderer 所需的 buffer/attribute 格式。
 
 ```ts
-import { vec3 } from 'gl-matrix';
 import { path, geometry } from 'path-math';
 
 const route = path.create();
 path.setPolyline(route, [
-  vec3.fromValues(0, 0, 0),
-  vec3.fromValues(10, 0, 0),
-  vec3.fromValues(10, 10, 0)
+  [0, 0, 0],
+  [10, 0, 0],
+  [10, 10, 0]
 ]);
 
 const frames = path.buildFrames(route, {
   divisions: 16,
-  initialNormal: vec3.fromValues(0, 0, 1)
+  initialNormal: [0, 0, 1]
 });
 
 const tubeGeometry = geometry.createTube(frames, {

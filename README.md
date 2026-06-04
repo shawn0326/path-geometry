@@ -38,17 +38,16 @@ Create a path from an ordered `vec3` point array when your source data is alread
 - `setSmoothCurve` builds smooth cubic curves through the points.
 - `setBeveledCurve` keeps straight sections and rounds corners with quadratic bevels.
 
-For planar data, pass `vec3` points with `z = 0` instead of using a separate 2D API.
+For planar data, pass 3D points with `z = 0` instead of using a separate 2D API. Input vectors can be `gl-matrix` `vec3` values or plain `[x, y, z]` arrays.
 
 ```ts
-import { vec3 } from 'gl-matrix';
 import { path } from 'path-math';
 
 const rawPoints = [
-  vec3.fromValues(0, 0, 0),
-  vec3.fromValues(10, 0, 0),
-  vec3.fromValues(10, 10, 0),
-  vec3.fromValues(20, 10, 0)
+  [0, 0, 0],
+  [10, 0, 0],
+  [10, 10, 0],
+  [20, 10, 0]
 ];
 
 const route = path.create();
@@ -78,12 +77,12 @@ import { path } from 'path-math';
 const writer = path.writer();
 
 const route = writer
-  .moveTo(vec3.fromValues(0, 0, 0))
-  .lineTo(vec3.fromValues(10, 0, 0))
+  .moveTo([0, 0, 0])
+  .lineTo([10, 0, 0])
   .cubicTo(
-    vec3.fromValues(15, 5, 0),
-    vec3.fromValues(20, 5, 0),
-    vec3.fromValues(30, 0, 0)
+    [15, 5, 0],
+    [20, 5, 0],
+    [30, 0, 0]
   )
   .toPath();
 
@@ -136,7 +135,7 @@ Use `path.buildFrames(route, options?)` when you need stable orientation data al
 ```ts
 const frames = path.buildFrames(route, {
   divisions: 24,
-  initialNormal: vec3.fromValues(0, 0, 1),
+  initialNormal: [0, 0, 1],
   transport: true,
   close: false
 });
@@ -159,19 +158,18 @@ Use `geometry.createTube(frames, options?)` and `geometry.createRibbon(frames, o
 Both builders return plain arrays: `positions`, `normals`, `uvs`, `uvs2`, and `indices`. You can convert them to the buffer/attribute format required by t3d, three.js, WebGPU, or your own renderer.
 
 ```ts
-import { vec3 } from 'gl-matrix';
 import { path, geometry } from 'path-math';
 
 const route = path.create();
 path.setPolyline(route, [
-  vec3.fromValues(0, 0, 0),
-  vec3.fromValues(10, 0, 0),
-  vec3.fromValues(10, 10, 0)
+  [0, 0, 0],
+  [10, 0, 0],
+  [10, 10, 0]
 ]);
 
 const frames = path.buildFrames(route, {
   divisions: 16,
-  initialNormal: vec3.fromValues(0, 0, 1)
+  initialNormal: [0, 0, 1]
 });
 
 const tubeGeometry = geometry.createTube(frames, {
