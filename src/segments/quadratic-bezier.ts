@@ -1,7 +1,8 @@
 import { vec3 } from 'gl-matrix';
 import type { ReadonlyVec3 } from 'gl-matrix';
 import type { QuadraticBezierSegment, Segment } from '../types';
-import { getSegmentLength, getSegmentLengths, getSegmentPoints, getSegmentSpacedPoints, mapUToT, markSegmentDirty, segmentOps, segmentPointAt, segmentTangentAt } from './shared';
+import { getSegmentLength, getSegmentLengths, getSegmentPoints, getSegmentSpacedPoints, mapUToT, markSegmentDirty, segmentOps } from './shared';
+import { EPSILON } from '../utils/math';
 
 /**
  * Operations for 3D quadratic Bezier segments.
@@ -22,15 +23,28 @@ export class QuadraticBezierSegmentImpl implements QuadraticBezierSegment {
   }
 
   pointAt(out: vec3, t: number): vec3 {
-    return segmentPointAt(out, this, t);
+    const k = 1 - t;
+    out[0] = k * k * this.p0[0] + 2 * k * t * this.p1[0] + t * t * this.p2[0];
+    out[1] = k * k * this.p0[1] + 2 * k * t * this.p1[1] + t * t * this.p2[1];
+    out[2] = k * k * this.p0[2] + 2 * k * t * this.p1[2] + t * t * this.p2[2];
+    return out;
   }
 
   pointAtU(out: vec3, u: number): vec3 {
-    return segmentPointAt(out, this, this.mapUToT(u));
+    return this.pointAt(out, this.mapUToT(u));
   }
 
   tangentAt(out: vec3, t: number): vec3 {
-    return segmentTangentAt(out, this, t);
+    out[0] = 2 * (1 - t) * (this.p1[0] - this.p0[0]) + 2 * t * (this.p2[0] - this.p1[0]);
+    out[1] = 2 * (1 - t) * (this.p1[1] - this.p0[1]) + 2 * t * (this.p2[1] - this.p1[1]);
+    out[2] = 2 * (1 - t) * (this.p1[2] - this.p0[2]) + 2 * t * (this.p2[2] - this.p1[2]);
+    if (vec3.len(out) <= EPSILON) {
+      out[0] = 1;
+      out[1] = 0;
+      out[2] = 0;
+      return out;
+    }
+    return vec3.normalize(out, out);
   }
 
   getLength(): number {
@@ -77,7 +91,7 @@ export const quadraticBezier = {
    * @returns The out vector.
    */
   pointAt(out: vec3, segment: QuadraticBezierSegment, t: number): vec3 {
-    return segmentPointAt(out, segment, t);
+    return segment.pointAt(out, t);
   },
   /**
    * Evaluates the segment by normalized arc length.
@@ -87,7 +101,7 @@ export const quadraticBezier = {
    * @returns The out vector.
    */
   pointAtU(out: vec3, segment: QuadraticBezierSegment, u: number): vec3 {
-    return segmentPointAt(out, segment, this.mapUToT(segment, u));
+    return segment.pointAtU(out, u);
   },
   /**
    * Evaluates a normalized tangent by raw Bezier parameter t.
@@ -97,7 +111,7 @@ export const quadraticBezier = {
    * @returns The out vector.
    */
   tangentAt(out: vec3, segment: QuadraticBezierSegment, t: number): vec3 {
-    return segmentTangentAt(out, segment, t);
+    return segment.tangentAt(out, t);
   },
   /**
    * Returns the approximate segment length.
@@ -105,7 +119,7 @@ export const quadraticBezier = {
    * @returns Segment length.
    */
   getLength(segment: QuadraticBezierSegment): number {
-    return getSegmentLength(segment as Segment, segmentOps);
+    return segment.getLength();
   },
   /**
    * Returns cumulative arc lengths for this segment.
@@ -114,7 +128,7 @@ export const quadraticBezier = {
    * @returns Cumulative arc-length table.
    */
   getLengths(segment: QuadraticBezierSegment, divisions?: number): number[] {
-    return getSegmentLengths(segment as Segment, divisions, segmentOps);
+    return segment.getLengths(divisions);
   },
   /**
    * Samples points by raw Bezier parameter t.
@@ -123,7 +137,7 @@ export const quadraticBezier = {
    * @returns Sampled points.
    */
   getPoints(segment: QuadraticBezierSegment, divisions?: number): vec3[] {
-    return getSegmentPoints(segment as Segment, divisions, segmentOps);
+    return segment.getPoints(divisions);
   },
   /**
    * Samples points by approximate arc length.
@@ -132,7 +146,7 @@ export const quadraticBezier = {
    * @returns Arc-length-spaced points.
    */
   getSpacedPoints(segment: QuadraticBezierSegment, divisions?: number): vec3[] {
-    return getSegmentSpacedPoints(segment as Segment, divisions, segmentOps);
+    return segment.getSpacedPoints(divisions);
   },
   /**
    * Maps normalized arc length or an explicit distance to raw Bezier parameter t.
@@ -142,13 +156,13 @@ export const quadraticBezier = {
    * @returns Raw Bezier parameter t.
    */
   mapUToT(segment: QuadraticBezierSegment, u: number, distance?: number): number {
-    return mapUToT(segment as Segment, u, distance, segmentOps);
+    return segment.mapUToT(u, distance);
   },
   /**
    * Marks cached segment metrics dirty after direct point mutation.
    * @param segment Segment whose metrics should be recomputed lazily.
    */
   markDirty(segment: QuadraticBezierSegment): void {
-    markSegmentDirty(segment);
+    segment.markDirty();
   }
 };

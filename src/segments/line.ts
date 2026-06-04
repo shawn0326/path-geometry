@@ -1,7 +1,8 @@
 import { vec3 } from 'gl-matrix';
 import type { ReadonlyVec3 } from 'gl-matrix';
 import type { LineSegment, Segment } from '../types';
-import { getSegmentLength, getSegmentLengths, getSegmentPoints, getSegmentSpacedPoints, mapUToT, markSegmentDirty, segmentOps, segmentPointAt, segmentTangentAt } from './shared';
+import { getSegmentLength, getSegmentLengths, getSegmentPoints, getSegmentSpacedPoints, mapUToT, markSegmentDirty, segmentOps } from './shared';
+import { EPSILON } from '../utils/math';
 
 /**
  * Operations for 3D straight line segments.
@@ -20,15 +21,25 @@ export class LineSegmentImpl implements LineSegment {
   }
 
   pointAt(out: vec3, t: number): vec3 {
-    return segmentPointAt(out, this, t);
+    out[0] = this.p0[0] + (this.p1[0] - this.p0[0]) * t;
+    out[1] = this.p0[1] + (this.p1[1] - this.p0[1]) * t;
+    out[2] = this.p0[2] + (this.p1[2] - this.p0[2]) * t;
+    return out;
   }
 
   pointAtU(out: vec3, u: number): vec3 {
-    return segmentPointAt(out, this, u);
+    return this.pointAt(out, u);
   }
 
   tangentAt(out: vec3, t: number): vec3 {
-    return segmentTangentAt(out, this, t);
+    vec3.sub(out, this.p1, this.p0);
+    if (vec3.len(out) <= EPSILON) {
+      out[0] = 1;
+      out[1] = 0;
+      out[2] = 0;
+      return out;
+    }
+    return vec3.normalize(out, out);
   }
 
   getLength(): number {
@@ -74,7 +85,7 @@ export const line = {
    * @returns The out vector.
    */
   pointAt(out: vec3, segment: LineSegment, t: number): vec3 {
-    return segmentPointAt(out, segment, t);
+    return segment.pointAt(out, t);
   },
   /**
    * Evaluates the segment by normalized arc length.
@@ -84,7 +95,7 @@ export const line = {
    * @returns The out vector.
    */
   pointAtU(out: vec3, segment: LineSegment, u: number): vec3 {
-    return segmentPointAt(out, segment, u);
+    return segment.pointAtU(out, u);
   },
   /**
    * Evaluates a normalized tangent by raw parameter t.
@@ -94,7 +105,7 @@ export const line = {
    * @returns The out vector.
    */
   tangentAt(out: vec3, segment: LineSegment, t: number): vec3 {
-    return segmentTangentAt(out, segment, t);
+    return segment.tangentAt(out, t);
   },
   /**
    * Returns the approximate segment length.
@@ -102,7 +113,7 @@ export const line = {
    * @returns Segment length.
    */
   getLength(segment: LineSegment): number {
-    return getSegmentLength(segment as Segment, segmentOps);
+    return segment.getLength();
   },
   /**
    * Returns cumulative arc lengths for this segment.
@@ -111,7 +122,7 @@ export const line = {
    * @returns Cumulative arc-length table.
    */
   getLengths(segment: LineSegment, divisions?: number): number[] {
-    return getSegmentLengths(segment as Segment, divisions ?? 1, segmentOps);
+    return segment.getLengths(divisions ?? 1);
   },
   /**
    * Samples points by raw parameter t.
@@ -120,7 +131,7 @@ export const line = {
    * @returns Sampled points.
    */
   getPoints(segment: LineSegment, divisions?: number): vec3[] {
-    return getSegmentPoints(segment as Segment, divisions, segmentOps);
+    return segment.getPoints(divisions);
   },
   /**
    * Samples points by approximate arc length.
@@ -129,7 +140,7 @@ export const line = {
    * @returns Arc-length-spaced points.
    */
   getSpacedPoints(segment: LineSegment, divisions?: number): vec3[] {
-    return getSegmentSpacedPoints(segment as Segment, divisions, segmentOps);
+    return segment.getSpacedPoints(divisions);
   },
   /**
    * Maps normalized arc length or an explicit distance to raw parameter t.
@@ -139,13 +150,13 @@ export const line = {
    * @returns Raw segment parameter t.
    */
   mapUToT(segment: LineSegment, u: number, distance?: number): number {
-    return mapUToT(segment as Segment, u, distance, segmentOps);
+    return segment.mapUToT(u, distance);
   },
   /**
    * Marks cached segment metrics dirty after direct point mutation.
    * @param segment Segment whose metrics should be recomputed lazily.
    */
   markDirty(segment: LineSegment): void {
-    markSegmentDirty(segment);
+    segment.markDirty();
   }
 };

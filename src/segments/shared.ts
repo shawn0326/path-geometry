@@ -125,60 +125,13 @@ export function mapUToT<S extends { arcLengthDivisions?: number; _metrics?: Segm
   return (i + (targetArcLength - lengthBefore) / segmentLength) / (il - 1);
 }
 
-export function segmentPointAt(out: vec3, segment: Segment, t: number): vec3 {
-  switch (segment.type) {
-    case 'line':
-      out[0] = segment.p0[0] + (segment.p1[0] - segment.p0[0]) * t;
-      out[1] = segment.p0[1] + (segment.p1[1] - segment.p0[1]) * t;
-      out[2] = segment.p0[2] + (segment.p1[2] - segment.p0[2]) * t;
-      return out;
-    case 'quadratic-bezier': {
-      const k = 1 - t;
-      out[0] = k * k * segment.p0[0] + 2 * k * t * segment.p1[0] + t * t * segment.p2[0];
-      out[1] = k * k * segment.p0[1] + 2 * k * t * segment.p1[1] + t * t * segment.p2[1];
-      out[2] = k * k * segment.p0[2] + 2 * k * t * segment.p1[2] + t * t * segment.p2[2];
-      return out;
-    }
-    case 'cubic-bezier': {
-      const k = 1 - t;
-      out[0] = k * k * k * segment.p0[0] + 3 * k * k * t * segment.p1[0] + 3 * k * t * t * segment.p2[0] + t * t * t * segment.p3[0];
-      out[1] = k * k * k * segment.p0[1] + 3 * k * k * t * segment.p1[1] + 3 * k * t * t * segment.p2[1] + t * t * t * segment.p3[1];
-      out[2] = k * k * k * segment.p0[2] + 3 * k * k * t * segment.p1[2] + 3 * k * t * t * segment.p2[2] + t * t * t * segment.p3[2];
-      return out;
-    }
-  }
-}
-
-export function segmentTangentAt(out: vec3, segment: Segment, t: number): vec3 {
-  switch (segment.type) {
-    case 'line':
-      vec3.sub(out, segment.p1, segment.p0);
-      break;
-    case 'quadratic-bezier':
-      out[0] = 2 * (1 - t) * (segment.p1[0] - segment.p0[0]) + 2 * t * (segment.p2[0] - segment.p1[0]);
-      out[1] = 2 * (1 - t) * (segment.p1[1] - segment.p0[1]) + 2 * t * (segment.p2[1] - segment.p1[1]);
-      out[2] = 2 * (1 - t) * (segment.p1[2] - segment.p0[2]) + 2 * t * (segment.p2[2] - segment.p1[2]);
-      break;
-    case 'cubic-bezier': {
-      const k = 1 - t;
-      out[0] = 3 * k * k * (segment.p1[0] - segment.p0[0]) + 6 * k * t * (segment.p2[0] - segment.p1[0]) + 3 * t * t * (segment.p3[0] - segment.p2[0]);
-      out[1] = 3 * k * k * (segment.p1[1] - segment.p0[1]) + 6 * k * t * (segment.p2[1] - segment.p1[1]) + 3 * t * t * (segment.p3[1] - segment.p2[1]);
-      out[2] = 3 * k * k * (segment.p1[2] - segment.p0[2]) + 6 * k * t * (segment.p2[2] - segment.p1[2]) + 3 * t * t * (segment.p3[2] - segment.p2[2]);
-      break;
-    }
-  }
-  if (vec3.len(out) <= EPSILON) {
-    out[0] = 1;
-    out[1] = 0;
-    out[2] = 0;
-    return out;
-  }
-  return vec3.normalize(out, out);
-}
-
 export const segmentOps: SegmentOps<Segment, vec3> = {
-  pointAt: segmentPointAt,
-  tangentAt: segmentTangentAt,
+  pointAt(out: vec3, segment: Segment, t: number): vec3 {
+    return segment.pointAt(out, t);
+  },
+  tangentAt(out: vec3, segment: Segment, t: number): vec3 {
+    return segment.tangentAt(out, t);
+  },
   distance: vec3.distance,
   createVector: vec3.create
 };
