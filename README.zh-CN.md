@@ -30,34 +30,7 @@ npm run docs
 
 GitHub Actions workflow 会在每次成功推送到 `master` 后，自动把 `docs/api/` 部署到 GitHub Pages。
 
-## 基础用法
-
-当数据来源更像绘制命令时，可以用 `PathWriter` 创建 path：move、line、quadratic Bezier、cubic Bezier、close。
-
-```ts
-import { vec3 } from 'gl-matrix';
-import { path } from 'path-math';
-
-const writer = path.writer();
-
-const route = writer
-  .moveTo(vec3.fromValues(0, 0, 0))
-  .lineTo(vec3.fromValues(10, 0, 0))
-  .cubicTo(
-    vec3.fromValues(15, 5, 0),
-    vec3.fromValues(20, 5, 0),
-    vec3.fromValues(30, 0, 0)
-  )
-  .toPath();
-
-const point = vec3.create();
-const tangent = vec3.create();
-
-path.pointAtDistance(point, route, 10);
-path.tangentAtDistance(tangent, route, 10);
-```
-
-## 从点生成
+## 基础用法：从点生成
 
 当数据来源已经是一组有序 `vec3` 点，比如 polyline 或 route，可以从点数组生成 path。`path` 提供这些构建方式：
 
@@ -93,6 +66,33 @@ path.setPolyline(route, points, { close: true });
 ```
 
 `preprocessPoints` 默认会移除连续重复点。如果设置了 `close: true`，它还会移除与第一个点相同的最后一个点，然后让 path 通过额外的闭合 segment 完成闭合。
+
+## Path Writer
+
+当数据来源更像绘制命令时，可以用 `path.writer()` 创建 path：move、line、quadratic Bezier、cubic Bezier、close。
+
+```ts
+import { vec3 } from 'gl-matrix';
+import { path } from 'path-math';
+
+const writer = path.writer();
+
+const route = writer
+  .moveTo(vec3.fromValues(0, 0, 0))
+  .lineTo(vec3.fromValues(10, 0, 0))
+  .cubicTo(
+    vec3.fromValues(15, 5, 0),
+    vec3.fromValues(20, 5, 0),
+    vec3.fromValues(30, 0, 0)
+  )
+  .toPath();
+
+const point = vec3.create();
+const tangent = vec3.create();
+
+path.pointAtDistance(point, route, 10);
+path.tangentAtDistance(tangent, route, 10);
+```
 
 ## 采样
 

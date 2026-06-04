@@ -30,34 +30,7 @@ Generated HTML is written to `docs/api/` and is ignored by git by default, so CI
 
 The GitHub Actions workflow deploys `docs/api/` to GitHub Pages automatically after every successful push to `master`.
 
-## Basic Usage
-
-Create a path with `PathWriter` when your source data is command-like: move, line, quadratic Bezier, cubic Bezier, close.
-
-```ts
-import { vec3 } from 'gl-matrix';
-import { path } from 'path-math';
-
-const writer = path.writer();
-
-const route = writer
-  .moveTo(vec3.fromValues(0, 0, 0))
-  .lineTo(vec3.fromValues(10, 0, 0))
-  .cubicTo(
-    vec3.fromValues(15, 5, 0),
-    vec3.fromValues(20, 5, 0),
-    vec3.fromValues(30, 0, 0)
-  )
-  .toPath();
-
-const point = vec3.create();
-const tangent = vec3.create();
-
-path.pointAtDistance(point, route, 10);
-path.tangentAtDistance(tangent, route, 10);
-```
-
-## From Points
+## Basic Usage: From Points
 
 Create a path from an ordered `vec3` point array when your source data is already a polyline or route. `path` provides these construction styles:
 
@@ -93,6 +66,33 @@ path.setPolyline(route, points, { close: true });
 ```
 
 `preprocessPoints` removes consecutive duplicate points by default. If `close: true`, it also removes a duplicated final point equal to the first point, then lets the path close by adding the closing segment.
+
+## Path Writer
+
+Create a path with `path.writer()` when your source data is command-like: move, line, quadratic Bezier, cubic Bezier, close.
+
+```ts
+import { vec3 } from 'gl-matrix';
+import { path } from 'path-math';
+
+const writer = path.writer();
+
+const route = writer
+  .moveTo(vec3.fromValues(0, 0, 0))
+  .lineTo(vec3.fromValues(10, 0, 0))
+  .cubicTo(
+    vec3.fromValues(15, 5, 0),
+    vec3.fromValues(20, 5, 0),
+    vec3.fromValues(30, 0, 0)
+  )
+  .toPath();
+
+const point = vec3.create();
+const tangent = vec3.create();
+
+path.pointAtDistance(point, route, 10);
+path.tangentAtDistance(tangent, route, 10);
+```
 
 ## Sampling
 

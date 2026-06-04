@@ -22,6 +22,4 @@ export function rotateAroundAxis(out: vec3, v: ReadonlyVec3, axis: ReadonlyVec3,
   return out;
 }
 
-const _axis = vec3.create();
-
 export default null;

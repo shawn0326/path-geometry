@@ -20,9 +20,7 @@ export type {
   QuadraticBezierSegment,
   ReadonlyVector,
   PathWriter,
-  RibbonGeometryData,
   RibbonSide,
   Segment,
-  SmoothCurveOptions,
-  TubeGeometryData
+  SmoothCurveOptions
 } from './types';

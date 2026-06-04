@@ -269,18 +269,6 @@ export interface GeometryData {
 }
 
 /**
- * Geometry buffers generated for a tube along a 3D path.
- * 沿三维 path 生成的管状几何数据。
- */
-export interface TubeGeometryData extends GeometryData {}
-
-/**
- * Geometry buffers generated for a ribbon along a 3D path.
- * 沿三维 path 生成的带状几何数据。
- */
-export interface RibbonGeometryData extends GeometryData {}
-
-/**
  * Options for building tube geometry from 3D path frames.
  * 从三维 path frame 构建管状几何的选项。
  */

@@ -1,10 +1,10 @@
 import { vec3 } from 'gl-matrix';
 import type { ReadonlyVec3 } from 'gl-matrix';
-import type { BuildRibbonOptions, RibbonGeometryData, RibbonSide, PathFrames } from '../types';
+import type { BuildRibbonOptions, GeometryData, RibbonSide, PathFrames } from '../types';
 
 const DEFAULT_WIDTH = 0.1;
 
-function createGeometry(): RibbonGeometryData {
+function createGeometry(): GeometryData {
   return {
     positions: [],
     normals: [],
@@ -77,7 +77,7 @@ function computeEdge(
 }
 
 function pushSimplePair(
-  geometry: RibbonGeometryData,
+  geometry: GeometryData,
   left: ReadonlyVec3,
   right: ReadonlyVec3,
   normal: ReadonlyVec3,
@@ -91,7 +91,7 @@ function pushSimplePair(
   geometry.uvs2.push(uvU2, 0, uvU2, 1);
 }
 
-export function createRibbon(frames: PathFrames, options: BuildRibbonOptions = {}): RibbonGeometryData {
+export function createRibbon(frames: PathFrames, options: BuildRibbonOptions = {}): GeometryData {
     const geometry = createGeometry();
     const frameLength = frames.points.length;
 

@@ -1,13 +1,13 @@
 import { vec3 } from 'gl-matrix';
 import type { ReadonlyVec3 } from 'gl-matrix';
-import type { BuildTubeOptions, PathFrames, TubeGeometryData } from '../types';
+import type { BuildTubeOptions, GeometryData, PathFrames } from '../types';
 import { rotateAroundAxis } from '../helper';
 
 const TAU = Math.PI * 2;
 const DEFAULT_RADIUS = 0.1;
 const DEFAULT_RADIAL_SEGMENTS = 8;
 
-function createGeometry(): TubeGeometryData {
+function createGeometry(): GeometryData {
   return {
     positions: [],
     normals: [],
@@ -59,7 +59,7 @@ function pushVec3(target: number[], value: ReadonlyVec3): void {
 }
 
 function pushDuplicateVertex(
-  geometry: TubeGeometryData,
+  geometry: GeometryData,
   sourceIndex: number,
   normal: ReadonlyVec3
 ): void {
@@ -76,7 +76,7 @@ function pushDuplicateVertex(
   geometry.uvs2.push(geometry.uvs2[uvOffset]!, geometry.uvs2[uvOffset + 1]!);
 }
 
-export function createTube(frames: PathFrames, options: BuildTubeOptions = {}): TubeGeometryData {
+export function createTube(frames: PathFrames, options: BuildTubeOptions = {}): GeometryData {
     const geometry = createGeometry();
     const frameLength = frames.points.length;
 
