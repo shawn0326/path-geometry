@@ -1,11 +1,9 @@
-import { line } from './line';
-import { quadraticBezier } from './quadratic-bezier';
-import { cubicBezier } from './cubic-bezier';
+import { createLine } from './line';
+import { createQuadraticBezier } from './quadratic-bezier';
+import { createCubicBezier } from './cubic-bezier';
 
 export const segment = {
-  createLine: line.create,
-  createQuadraticBezier: quadraticBezier.create,
-  createCubicBezier: cubicBezier.create
+  createLine,
+  createQuadraticBezier,
+  createCubicBezier
 };
-
-export type { };
