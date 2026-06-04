@@ -71,7 +71,6 @@ path.setPolyline(route, points, { close: true });
 Create a path with `path.writer()` when your source data is command-like: move, line, quadratic Bezier, cubic Bezier, close.
 
 ```ts
-import { vec3 } from 'gl-matrix';
 import { path } from 'path-math';
 
 const writer = path.writer();
@@ -86,8 +85,8 @@ const route = writer
   )
   .toPath();
 
-const point = vec3.create();
-const tangent = vec3.create();
+const point = [0, 0, 0];
+const tangent = [0, 0, 0];
 
 path.pointAtDistance(point, route, 10);
 path.tangentAtDistance(tangent, route, 10);
@@ -106,8 +105,8 @@ Paths expose sampling methods for common geometry workflows:
 ```ts
 const length = path.getLength(route);
 
-const point = vec3.create();
-const tangent = vec3.create();
+const point = [0, 0, 0];
+const tangent = [0, 0, 0];
 
 path.pointAtU(point, route, 0.5);
 path.tangentAtDistance(tangent, route, length * 0.5);

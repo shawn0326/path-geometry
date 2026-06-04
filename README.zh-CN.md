@@ -86,8 +86,8 @@ const route = writer
   )
   .toPath();
 
-const point = vec3.create();
-const tangent = vec3.create();
+const point = [0, 0, 0];
+const tangent = [0, 0, 0];
 
 path.pointAtDistance(point, route, 10);
 path.tangentAtDistance(tangent, route, 10);
@@ -106,8 +106,8 @@ path 提供了适合常见几何工作流的采样方法：
 ```ts
 const length = path.getLength(route);
 
-const point = vec3.create();
-const tangent = vec3.create();
+const point = [0, 0, 0];
+const tangent = [0, 0, 0];
 
 path.pointAtU(point, route, 0.5);
 path.tangentAtDistance(tangent, route, length * 0.5);
