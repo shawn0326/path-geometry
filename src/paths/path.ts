@@ -1,10 +1,7 @@
 import { vec3 } from 'gl-matrix';
 import type { ReadonlyVec3 } from 'gl-matrix';
 import type { BeveledCurveOptions, BuildFramesOptions, Path, PathFrames, PointPreprocessOptions, PolylineOptions, Segment, SmoothCurveOptions } from '../types';
-import { cubicBezier } from '../segments/cubic-bezier';
-import { line } from '../segments/line';
-import { quadraticBezier } from '../segments/quadratic-bezier';
-import { getSegmentLength, mapUToT, markSegmentDirty, segmentOps, segmentPointAt, segmentTangentAt } from '../segments/shared';
+import { segment } from '../segments';
 import { initialNormal3, orthonormalize3, transportNormal3 } from '../utils/frame';
 import { clamp, EPSILON } from '../utils/math';
 import { rotateAroundAxis } from '../utils/rotate';
@@ -68,7 +65,7 @@ function markPathDirty(path: Path, recursive = false): void {
   if (path._metrics) path._metrics.needsUpdate = true;
   if (recursive) {
     for (const segment of path.segments) {
-      markSegmentDirty(segment);
+      segment.markDirty();
     }
   }
 }
@@ -81,7 +78,7 @@ function getPathLengths(path: Path): number[] {
   const lengths: number[] = [];
   let sum = 0;
   for (const segment of path.segments) {
-    sum += getSegmentLength(segment, segmentOps);
+    sum += segment.getLength();
     lengths.push(sum);
   }
   path._metrics = { lengths, totalLength: sum, segmentCount: path.segments.length, needsUpdate: false };
@@ -113,10 +110,10 @@ function pathPointAtDistance(out: vec3, path: Path, distance: number): vec3 {
   const found = findSegmentDistance(lengths, distance);
   const segment = path.segments[found.index];
   if (!segment) return out;
-  const segmentLength = getSegmentLength(segment, segmentOps);
+  const segmentLength = segment.getLength();
   const u = segmentLength === 0 ? 0 : found.localDistance / segmentLength;
-  const t = segment.type === 'line' ? u : mapUToT(segment, u, found.localDistance, segmentOps);
-  return segmentPointAt(out, segment, t);
+  const t = segment.type === 'line' ? u : segment.mapUToT(u, found.localDistance);
+  return segment.pointAt(out, t);
 }
 
 function pathTangentAtDistance(out: vec3, path: Path, distance: number): vec3 {
@@ -124,10 +121,10 @@ function pathTangentAtDistance(out: vec3, path: Path, distance: number): vec3 {
   const found = findSegmentDistance(lengths, distance);
   const segment = path.segments[found.index];
   if (!segment) return out;
-  const segmentLength = getSegmentLength(segment, segmentOps);
+  const segmentLength = segment.getLength();
   const u = segmentLength === 0 ? 0 : found.localDistance / segmentLength;
-  const t = segment.type === 'line' ? u : mapUToT(segment, u, found.localDistance, segmentOps);
-  return segmentTangentAt(out, segment, t);
+  const t = segment.type === 'line' ? u : segment.mapUToT(u, found.localDistance);
+  return segment.tangentAt(out, t);
 }
 
 /**
@@ -203,21 +200,21 @@ export const path = {
 
     function lineTo(point: ReadonlyVec3) {
       if (!currentPoint) return moveTo(point);
-      path.addSegment(target, line.create(currentPoint, point));
+      path.addSegment(target, segment.createLine(currentPoint, point));
       vec3.copy(currentPoint, point);
       return api;
     }
 
     function quadraticTo(control: ReadonlyVec3, point: ReadonlyVec3) {
       if (!currentPoint) return moveTo(point);
-      path.addSegment(target, quadraticBezier.create(currentPoint, control, point));
+      path.addSegment(target, segment.createQuadraticBezier(currentPoint, control, point));
       vec3.copy(currentPoint, point);
       return api;
     }
 
     function cubicTo(control1: ReadonlyVec3, control2: ReadonlyVec3, point: ReadonlyVec3) {
       if (!currentPoint) return moveTo(point);
-      path.addSegment(target, cubicBezier.create(currentPoint, control1, control2, point));
+      path.addSegment(target, segment.createCubicBezier(currentPoint, control1, control2, point));
       vec3.copy(currentPoint, point);
       return api;
     }
@@ -262,7 +259,7 @@ export const path = {
     const lastIndex = points.length - 1;
     const segments = close && !vecEquals(points[0]!, points[lastIndex]!) ? points.length : lastIndex;
     for (let i = 0; i < segments; i++) {
-      path.segments.push(line.create(points[i]!, i === lastIndex ? points[0]! : points[i + 1]!));
+      path.segments.push(segment.createLine(points[i]!, i === lastIndex ? points[0]! : points[i + 1]!));
     }
     markPathDirty(path);
     return path;
@@ -295,7 +292,7 @@ export const path = {
       if (i === 0) {
         vec3.copy(cp0, current);
       } else if (i === l - 1) {
-        path.segments.push(cubicBezier.create(points[i - 1]!, cp0, current, current));
+        path.segments.push(segment.createCubicBezier(points[i - 1]!, cp0, current, current));
       } else {
         vec3.copy(next, points[i + 1]!);
         vec3.copy(prev, points[i - 1]!);
@@ -315,7 +312,7 @@ export const path = {
 
         vec3.sub(v1, current, cp1);
         vec3.scaleAndAdd(nextCp0, current, v1, lenNextSeg / lenPrevSeg);
-        path.segments.push(cubicBezier.create(prev, cp0, cp1, current));
+        path.segments.push(segment.createCubicBezier(prev, cp0, cp1, current));
         vec3.copy(cp0, nextCp0);
       }
     }
@@ -349,7 +346,7 @@ export const path = {
       const p1 = points[(i + 1) % (lastIndex + 1)]!;
       const p2 = points[(i + 2) % (lastIndex + 1)]!;
       if (i === segments - 1 && !close) {
-        path.segments.push(line.create(p0, p1));
+        path.segments.push(segment.createLine(p0, p1));
         vec3.copy(p0, p1);
         break;
       }
@@ -365,10 +362,10 @@ export const path = {
       vec3.normalize(nextDir, nextDir);
 
       const lineEnd = vec3.scaleAndAdd(vec3.create(), p1, lastDir, -v0Dist);
-      path.segments.push(line.create(p0, lineEnd));
+      path.segments.push(segment.createLine(p0, lineEnd));
 
       const bezierEnd = vec3.scaleAndAdd(vec3.create(), p1, nextDir, v2Dist);
-      path.segments.push(quadraticBezier.create(lineEnd, p1, bezierEnd));
+      path.segments.push(segment.createQuadraticBezier(lineEnd, p1, bezierEnd));
       vec3.copy(p0, bezierEnd);
     }
 
@@ -455,7 +452,7 @@ export const path = {
       const limit = isLast ? resolution : resolution - 1;
       for (let j = 0; j <= limit; j++) {
         const point = vec3.create();
-        segmentPointAt(point, segment, j / resolution);
+        segment.pointAt(point, j / resolution);
         points.push(point);
       }
     }
@@ -513,7 +510,7 @@ export const path = {
       const limit = isLast ? resolution : resolution - 1;
       for (let j = 0; j <= limit; j++) {
         const point = vec3.create();
-        segmentPointAt(point, segment, j / resolution);
+        segment.pointAt(point, j / resolution);
         points.push(point);
         tangentTypes.push(tangentType);
         if (tangentType === 1) tangentType++;

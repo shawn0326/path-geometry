@@ -1,6 +1,3 @@
-export { line } from './segments/line';
-export { quadraticBezier } from './segments/quadratic-bezier';
-export { cubicBezier } from './segments/cubic-bezier';
 export { segment } from './segments';
 
 export { path } from './paths/path';

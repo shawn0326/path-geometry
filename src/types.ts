@@ -31,6 +31,23 @@ export interface LineSegment extends SegmentBase {
   p0: vec3;
   /** End point. */
   p1: vec3;
+  /** Evaluate point at raw parameter t. */
+  pointAt(out: vec3, t: number): vec3;
+  pointAtU(out: vec3, u: number): vec3;
+  /** Evaluate tangent at raw parameter t. */
+  tangentAt(out: vec3, t: number): vec3;
+  /** Get approximate length. */
+  getLength(): number;
+  /** Get cumulative lengths table. */
+  getLengths(divisions?: number): number[];
+  /** Sample points by parameter. */
+  getPoints(divisions?: number): vec3[];
+  /** Sample arc-length spaced points. */
+  getSpacedPoints(divisions?: number): vec3[];
+  /** Map normalized arc-length u to raw parameter t. */
+  mapUToT(u: number, distance?: number): number;
+  /** Mark internal caches dirty. */
+  markDirty(): void;
 }
 
 /**
@@ -45,6 +62,15 @@ export interface QuadraticBezierSegment extends SegmentBase {
   p1: vec3;
   /** End point. */
   p2: vec3;
+  pointAt(out: vec3, t: number): vec3;
+  pointAtU(out: vec3, u: number): vec3;
+  tangentAt(out: vec3, t: number): vec3;
+  getLength(): number;
+  getLengths(divisions?: number): number[];
+  getPoints(divisions?: number): vec3[];
+  getSpacedPoints(divisions?: number): vec3[];
+  mapUToT(u: number, distance?: number): number;
+  markDirty(): void;
 }
 
 /**
@@ -61,6 +87,15 @@ export interface CubicBezierSegment extends SegmentBase {
   p2: vec3;
   /** End point. */
   p3: vec3;
+  pointAt(out: vec3, t: number): vec3;
+  pointAtU(out: vec3, u: number): vec3;
+  tangentAt(out: vec3, t: number): vec3;
+  getLength(): number;
+  getLengths(divisions?: number): number[];
+  getPoints(divisions?: number): vec3[];
+  getSpacedPoints(divisions?: number): vec3[];
+  mapUToT(u: number, distance?: number): number;
+  markDirty(): void;
 }
 
 /**

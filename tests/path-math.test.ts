@@ -3,7 +3,7 @@ import { vec3 } from 'gl-matrix';
 import { Vector3 as T3DVector3 } from 't3d';
 import { CubicBezierCurve3 as T3DCubicBezierCurve3 } from 't3d/examples/jsm/math/curves/CubicBezierCurve3.js';
 import { CurvePath3 as T3DCurvePath3 } from 't3d/examples/jsm/math/curves/CurvePath3.js';
-import { cubicBezier, line, path, quadraticBezier, ribbon, tube } from '../src/index';
+import { segment, path, ribbon, tube } from '../src/index';
 import type { Path, PathFrames, PolylineOptions, ReadonlyVector } from '../src/index';
 
 const EPS = 1e-5;
@@ -40,66 +40,66 @@ function createStraightFrames(): PathFrames {
 
 describe('segments', () => {
   it('samples line endpoints and length', () => {
-    const segment = line.create(vec3.fromValues(0, 0, 0), vec3.fromValues(3, 4, 0));
+    const seg = segment.createLine(vec3.fromValues(0, 0, 0), vec3.fromValues(3, 4, 0));
     const out = vec3.create();
-    expectVec3Close(line.pointAt(out, segment, 0), vec3.fromValues(0, 0, 0));
-    expectVec3Close(line.pointAt(out, segment, 1), vec3.fromValues(3, 4, 0));
-    expect(line.getLength(segment)).toBeCloseTo(5);
-    expect(line.mapUToT(segment, 0.5)).toBeCloseTo(0.5);
+    expectVec3Close(seg.pointAt(out, 0), vec3.fromValues(0, 0, 0));
+    expectVec3Close(seg.pointAt(out, 1), vec3.fromValues(3, 4, 0));
+    expect(seg.getLength()).toBeCloseTo(5);
+    expect(seg.mapUToT(0.5)).toBeCloseTo(0.5);
   });
 
   it('samples quadratic and cubic endpoints', () => {
-    const q = quadraticBezier.create(vec3.fromValues(0, 0, 0), vec3.fromValues(5, 5, 0), vec3.fromValues(10, 0, 0));
-    const c = cubicBezier.create(vec3.fromValues(0, 0, 0), vec3.fromValues(3, 6, 0), vec3.fromValues(7, 6, 0), vec3.fromValues(10, 0, 0));
+    const q = segment.createQuadraticBezier(vec3.fromValues(0, 0, 0), vec3.fromValues(5, 5, 0), vec3.fromValues(10, 0, 0));
+    const c = segment.createCubicBezier(vec3.fromValues(0, 0, 0), vec3.fromValues(3, 6, 0), vec3.fromValues(7, 6, 0), vec3.fromValues(10, 0, 0));
     const out = vec3.create();
-    expectVec3Close(quadraticBezier.pointAt(out, q, 0), vec3.fromValues(0, 0, 0));
-    expectVec3Close(quadraticBezier.pointAt(out, q, 1), vec3.fromValues(10, 0, 0));
-    expectVec3Close(cubicBezier.pointAt(out, c, 0), vec3.fromValues(0, 0, 0));
-    expectVec3Close(cubicBezier.pointAt(out, c, 1), vec3.fromValues(10, 0, 0));
+    expectVec3Close(q.pointAt(out, 0), vec3.fromValues(0, 0, 0));
+    expectVec3Close(q.pointAt(out, 1), vec3.fromValues(10, 0, 0));
+    expectVec3Close(c.pointAt(out, 0), vec3.fromValues(0, 0, 0));
+    expectVec3Close(c.pointAt(out, 1), vec3.fromValues(10, 0, 0));
   });
 
   it('returns normalized tangents and refreshes dirty length caches', () => {
-    const segment = line.create(vec3.fromValues(0, 0, 0), vec3.fromValues(1, 0, 0));
+    const seg = segment.createLine(vec3.fromValues(0, 0, 0), vec3.fromValues(1, 0, 0));
     const tangent = vec3.create();
-    line.tangentAt(tangent, segment, 0.5);
+    seg.tangentAt(tangent, 0.5);
     expect(vec3.len(tangent)).toBeCloseTo(1);
 
-    expect(line.getLength(segment)).toBeCloseTo(1);
-    segment.p1[0] = 2;
-    expect(line.getLength(segment)).toBeCloseTo(1);
-    line.markDirty(segment);
-    expect(line.getLength(segment)).toBeCloseTo(2);
+    expect(seg.getLength()).toBeCloseTo(1);
+    seg.p1[0] = 2;
+    expect(seg.getLength()).toBeCloseTo(1);
+    seg.markDirty();
+    expect(seg.getLength()).toBeCloseTo(2);
   });
 
   it('matches t3d Curve getPoints and getSpacedPoints count behavior', () => {
-    const segment = line.create(vec3.fromValues(0, 0, 0), vec3.fromValues(10, 0, 0));
-    const linePoints = line.getPoints(segment, 5);
+    const seg = segment.createLine(vec3.fromValues(0, 0, 0), vec3.fromValues(10, 0, 0));
+    const linePoints = seg.getPoints(5);
     expect(linePoints).toHaveLength(6);
     expectVec3Close(linePoints[3]!, vec3.fromValues(6, 0, 0));
 
-    const cubic = cubicBezier.create(
+    const cubic = segment.createCubicBezier(
       vec3.fromValues(0, 0, 0),
       vec3.fromValues(0, 10, 0),
       vec3.fromValues(10, 10, 0),
       vec3.fromValues(10, 0, 0)
     );
-    const spaced = cubicBezier.getSpacedPoints(cubic, 4);
+    const spaced = cubic.getSpacedPoints(4);
     expect(spaced).toHaveLength(5);
     expectVec3Close(spaced[0]!, vec3.fromValues(0, 0, 0));
     expectVec3Close(spaced[4]!, vec3.fromValues(10, 0, 0));
   });
 
   it('matches a t3d cubic getPointAt and getSpacedPoints fixture', () => {
-    const cubic = cubicBezier.create(
+    const cubic = segment.createCubicBezier(
       vec3.fromValues(0, 0, 0),
       vec3.fromValues(0, 10, 0),
       vec3.fromValues(10, 10, 5),
       vec3.fromValues(10, 0, 0)
     );
-    const point = cubicBezier.pointAtU(vec3.create(), cubic, 0.5);
+    const point = cubic.pointAtU(vec3.create(), 0.5);
     expectVec3Close(point, vec3.fromValues(5.097610538491925, 7.4987294808879765, 1.8990822487770207), 1e-5);
 
-    const spaced = cubicBezier.getSpacedPoints(cubic, 4);
+    const spaced = cubic.getSpacedPoints(4);
     const expected = [
       vec3.fromValues(0, 0, 0),
       vec3.fromValues(1.1201159583222406, 4.945930886811336, 0.514920573467789),
@@ -113,7 +113,7 @@ describe('segments', () => {
   });
 
   it('matches t3d npm cubic getPointAt and getSpacedPoints at runtime', () => {
-    const ours = cubicBezier.create(
+    const ours = segment.createCubicBezier(
       vec3.fromValues(0, 0, 0),
       vec3.fromValues(0, 10, 0),
       vec3.fromValues(10, 10, 5),
@@ -126,8 +126,8 @@ describe('segments', () => {
       new T3DVector3(10, 0, 0)
     );
 
-    expectVec3Close(cubicBezier.pointAtU(vec3.create(), ours, 0.5), vec3FromT3D(t3d.getPointAt(0.5)), 1e-5);
-    const oursSpaced = cubicBezier.getSpacedPoints(ours, 4);
+    expectVec3Close(ours.pointAtU(vec3.create(), 0.5), vec3FromT3D(t3d.getPointAt(0.5)), 1e-5);
+    const oursSpaced = ours.getSpacedPoints(4);
     const t3dSpaced = t3d.getSpacedPoints(4);
     for (let i = 0; i < t3dSpaced.length; i++) {
       expectVec3Close(oursSpaced[i]!, vec3FromT3D(t3dSpaced[i]!), 1e-5);
@@ -284,8 +284,8 @@ describe('paths', () => {
 
   it('gets points and spaced points', () => {
     const p = path.create();
-    path.addSegment(p, line.create(vec3.fromValues(0, 0, 0), vec3.fromValues(1, 0, 0)));
-    path.addSegment(p, cubicBezier.create(
+    path.addSegment(p, segment.createLine(vec3.fromValues(0, 0, 0), vec3.fromValues(1, 0, 0)));
+    path.addSegment(p, segment.createCubicBezier(
       vec3.fromValues(1, 0, 0),
       vec3.fromValues(2, 0, 0),
       vec3.fromValues(3, 0, 0),
@@ -300,7 +300,7 @@ describe('paths', () => {
 
   it('clamps path getPoints divisions to avoid NaN samples', () => {
     const p = path.create();
-    path.addSegment(p, cubicBezier.create(
+    path.addSegment(p, segment.createCubicBezier(
       vec3.fromValues(0, 0, 0),
       vec3.fromValues(1, 0, 0),
       vec3.fromValues(2, 0, 0),
