@@ -1,6 +1,6 @@
 import { vec3 } from 'gl-matrix';
 import type { ReadonlyVec3 } from 'gl-matrix';
-import type { BuildRibbonOptions, RibbonGeometryData, RibbonSide, PathFrames } from './types';
+import type { BuildRibbonOptions, RibbonGeometryData, RibbonSide, PathFrames } from '../types';
 
 const DEFAULT_WIDTH = 0.1;
 
@@ -91,8 +91,7 @@ function pushSimplePair(
   geometry.uvs2.push(uvU2, 0, uvU2, 1);
 }
 
-export const ribbon = {
-  build(frames: PathFrames, options: BuildRibbonOptions = {}): RibbonGeometryData {
+export function buildRibbon(frames: PathFrames, options: BuildRibbonOptions = {}): RibbonGeometryData {
     const geometry = createGeometry();
     const frameLength = frames.points.length;
 
@@ -283,5 +282,4 @@ export const ribbon = {
     }
 
     return geometry;
-  }
-};
+}

@@ -3,7 +3,7 @@ import { vec3 } from 'gl-matrix';
 import { Vector3 as T3DVector3 } from 't3d';
 import { CubicBezierCurve3 as T3DCubicBezierCurve3 } from 't3d/examples/jsm/math/curves/CubicBezierCurve3.js';
 import { CurvePath3 as T3DCurvePath3 } from 't3d/examples/jsm/math/curves/CurvePath3.js';
-import { segment, path, ribbon, tube } from '../src/index';
+import { segment, path, geometry } from '../src/index';
 import type { Path, PathFrames, PolylineOptions, ReadonlyVector } from '../src/index';
 
 const EPS = 1e-5;
@@ -487,27 +487,27 @@ describe('paths', () => {
 describe('geometry builders', () => {
   it('builds empty tube and ribbon geometry for empty frames', () => {
     const frames = path.buildFrames(path.create());
-    expect(tube.build(frames)).toEqual({ positions: [], normals: [], uvs: [], uvs2: [], indices: [] });
-    expect(ribbon.build(frames)).toEqual({ positions: [], normals: [], uvs: [], uvs2: [], indices: [] });
+    expect(geometry.createTube(frames)).toEqual({ positions: [], normals: [], uvs: [], uvs2: [], indices: [] });
+    expect(geometry.createRibbon(frames)).toEqual({ positions: [], normals: [], uvs: [], uvs2: [], indices: [] });
   });
 
   it('builds indexed tube side geometry from straight frames', () => {
     const frames = createStraightFrames();
-    const geometry = tube.build(frames, { radius: 1, radialSegments: 4 });
+    const tubeGeom = geometry.createTube(frames, { radius: 1, radialSegments: 4 });
     const vertexCount = frames.points.length * (4 + 1);
 
-    expect(geometry.positions).toHaveLength(vertexCount * 3);
-    expect(geometry.normals).toHaveLength(vertexCount * 3);
-    expect(geometry.uvs).toHaveLength(vertexCount * 2);
-    expect(geometry.uvs2).toHaveLength(vertexCount * 2);
-    expect(geometry.indices).toHaveLength((frames.points.length - 1) * 4 * 6);
-    expectVec3Close(vec3.fromValues(geometry.positions[0]!, geometry.positions[1]!, geometry.positions[2]!), vec3.fromValues(0, 1, 0));
-    expectVec3Close(vec3.fromValues(geometry.normals[0]!, geometry.normals[1]!, geometry.normals[2]!), vec3.fromValues(0, 1, 0));
+    expect(tubeGeom.positions).toHaveLength(vertexCount * 3);
+    expect(tubeGeom.normals).toHaveLength(vertexCount * 3);
+    expect(tubeGeom.uvs).toHaveLength(vertexCount * 2);
+    expect(tubeGeom.uvs2).toHaveLength(vertexCount * 2);
+    expect(tubeGeom.indices).toHaveLength((frames.points.length - 1) * 4 * 6);
+    expectVec3Close(vec3.fromValues(tubeGeom.positions[0]!, tubeGeom.positions[1]!, tubeGeom.positions[2]!), vec3.fromValues(0, 1, 0));
+    expectVec3Close(vec3.fromValues(tubeGeom.normals[0]!, tubeGeom.normals[1]!, tubeGeom.normals[2]!), vec3.fromValues(0, 1, 0));
   });
 
   it('adds tube caps with duplicated cap vertices', () => {
     const frames = createStraightFrames();
-    const geometry = tube.build(frames, {
+    const tubeGeom = geometry.createTube(frames, {
       radius: 1,
       radialSegments: 4,
       generateStartCap: true,
@@ -516,29 +516,29 @@ describe('geometry builders', () => {
     const sideVertexCount = frames.points.length * (4 + 1);
     const capVertexCount = 4 * 2;
 
-    expect(geometry.positions).toHaveLength((sideVertexCount + capVertexCount) * 3);
-    expect(geometry.indices).toHaveLength((frames.points.length - 1) * 4 * 6 + 2 * (4 - 2) * 3);
+    expect(tubeGeom.positions).toHaveLength((sideVertexCount + capVertexCount) * 3);
+    expect(tubeGeom.indices).toHaveLength((frames.points.length - 1) * 4 * 6 + 2 * (4 - 2) * 3);
   });
 
   it('builds indexed ribbon geometry from straight frames', () => {
     const frames = createStraightFrames();
-    const geometry = ribbon.build(frames, { width: 2, arrow: false });
+    const ribbonGeom = geometry.createRibbon(frames, { width: 2, arrow: false });
     const vertexCount = frames.points.length * 2;
 
-    expect(geometry.positions).toHaveLength(vertexCount * 3);
-    expect(geometry.normals).toHaveLength(vertexCount * 3);
-    expect(geometry.uvs).toHaveLength(vertexCount * 2);
-    expect(geometry.uvs2).toHaveLength(vertexCount * 2);
-    expect(geometry.indices).toHaveLength((frames.points.length - 1) * 6);
-    expectVec3Close(vec3.fromValues(geometry.positions[0]!, geometry.positions[1]!, geometry.positions[2]!), vec3.fromValues(0, 0, -1));
-    expectVec3Close(vec3.fromValues(geometry.positions[3]!, geometry.positions[4]!, geometry.positions[5]!), vec3.fromValues(0, 0, 1));
+    expect(ribbonGeom.positions).toHaveLength(vertexCount * 3);
+    expect(ribbonGeom.normals).toHaveLength(vertexCount * 3);
+    expect(ribbonGeom.uvs).toHaveLength(vertexCount * 2);
+    expect(ribbonGeom.uvs2).toHaveLength(vertexCount * 2);
+    expect(ribbonGeom.indices).toHaveLength((frames.points.length - 1) * 6);
+    expectVec3Close(vec3.fromValues(ribbonGeom.positions[0]!, ribbonGeom.positions[1]!, ribbonGeom.positions[2]!), vec3.fromValues(0, 0, -1));
+    expectVec3Close(vec3.fromValues(ribbonGeom.positions[3]!, ribbonGeom.positions[4]!, ribbonGeom.positions[5]!), vec3.fromValues(0, 0, 1));
   });
 
   it('supports one-sided ribbons and arrow heads', () => {
     const frames = createStraightFrames();
-    const left = ribbon.build(frames, { width: 2, side: 'left', arrow: false });
-    const right = ribbon.build(frames, { width: 2, side: 'right', arrow: false });
-    const arrow = ribbon.build(frames, { width: 2, arrow: true });
+    const left = geometry.createRibbon(frames, { width: 2, side: 'left', arrow: false });
+    const right = geometry.createRibbon(frames, { width: 2, side: 'right', arrow: false });
+    const arrow = geometry.createRibbon(frames, { width: 2, arrow: true });
 
     expectVec3Close(vec3.fromValues(left.positions[3]!, left.positions[4]!, left.positions[5]!), vec3.fromValues(0, 0, 0));
     expectVec3Close(vec3.fromValues(right.positions[0]!, right.positions[1]!, right.positions[2]!), vec3.fromValues(0, 0, 0));

@@ -1,9 +1,8 @@
-export { segment } from './segments';
+export { segment } from './segment';
 
 export { path } from './path';
 
-export { tube } from './tube';
-export { ribbon } from './ribbon';
+export { geometry } from './geometry';
 
 
 export type {

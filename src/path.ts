@@ -1,7 +1,7 @@
 import { vec3 } from 'gl-matrix';
 import type { ReadonlyVec3 } from 'gl-matrix';
 import type { BeveledCurveOptions, BuildFramesOptions, Path, PathFrames, PointPreprocessOptions, PolylineOptions, Segment, SmoothCurveOptions } from './types';
-import { segment } from './segments';
+import { segment } from './segment';
 import { clamp, EPSILON, rotateAroundAxis } from './helper';
 
 const _p3a = vec3.create();
