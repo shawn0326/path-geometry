@@ -7,7 +7,6 @@ export { path } from './paths/path';
 export { tube } from './geometries/tube';
 export { ribbon } from './geometries/ribbon';
 
-export { PathWriter } from './writers/PathWriter';
 
 export type {
   BeveledCurveOptions,

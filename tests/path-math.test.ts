@@ -3,7 +3,7 @@ import { vec3 } from 'gl-matrix';
 import { Vector3 as T3DVector3 } from 't3d';
 import { CubicBezierCurve3 as T3DCubicBezierCurve3 } from 't3d/examples/jsm/math/curves/CubicBezierCurve3.js';
 import { CurvePath3 as T3DCurvePath3 } from 't3d/examples/jsm/math/curves/CurvePath3.js';
-import { cubicBezier, line, path, PathWriter, quadraticBezier, ribbon, tube } from '../src/index';
+import { cubicBezier, line, path, quadraticBezier, ribbon, tube } from '../src/index';
 import type { Path, PathFrames, PolylineOptions, ReadonlyVector } from '../src/index';
 
 const EPS = 1e-5;
@@ -137,7 +137,7 @@ describe('segments', () => {
 
 describe('paths', () => {
   it('accumulates path length and samples endpoints', () => {
-    const writer = new PathWriter();
+    const writer = path.writer();
     const targetPath = writer
       .moveTo(vec3.fromValues(0, 0, 0))
       .lineTo(vec3.fromValues(10, 0, 0))
