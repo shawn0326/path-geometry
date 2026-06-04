@@ -186,6 +186,65 @@ export const path = {
   },
 
   /**
+   * Creates a chainable writer for building a path.
+   * @param targetPath Optional existing path to mutate.
+   * @returns A chainable writer with `toPath()`.
+   */
+  writer(targetPath?: Path) {
+    const target = targetPath ?? this.create();
+    let currentPoint: vec3 | null = null;
+    let subpathStart: vec3 | null = null;
+
+    function moveTo(point: ReadonlyVec3) {
+      currentPoint = vec3.clone(point);
+      subpathStart = vec3.clone(point);
+      return api;
+    }
+
+    function lineTo(point: ReadonlyVec3) {
+      if (!currentPoint) return moveTo(point);
+      path.addSegment(target, line.create(currentPoint, point));
+      vec3.copy(currentPoint, point);
+      return api;
+    }
+
+    function quadraticTo(control: ReadonlyVec3, point: ReadonlyVec3) {
+      if (!currentPoint) return moveTo(point);
+      path.addSegment(target, quadraticBezier.create(currentPoint, control, point));
+      vec3.copy(currentPoint, point);
+      return api;
+    }
+
+    function cubicTo(control1: ReadonlyVec3, control2: ReadonlyVec3, point: ReadonlyVec3) {
+      if (!currentPoint) return moveTo(point);
+      path.addSegment(target, cubicBezier.create(currentPoint, control1, control2, point));
+      vec3.copy(currentPoint, point);
+      return api;
+    }
+
+    function close() {
+      if (currentPoint && subpathStart && !vecEquals(currentPoint, subpathStart)) {
+        lineTo(subpathStart);
+      }
+      return api;
+    }
+
+    function clear() {
+      path.clear(target);
+      currentPoint = null;
+      subpathStart = null;
+      return api;
+    }
+
+    function toPath(): Path {
+      return target;
+    }
+
+    const api = { moveTo, lineTo, quadraticTo, cubicTo, close, clear, toPath };
+    return api;
+  },
+
+  /**
    * Replaces the path with straight line segments through the given points.
    * @param path Path to mutate.
    * @param points Source points.
