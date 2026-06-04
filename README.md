@@ -36,9 +36,9 @@ Create a path with `PathWriter` when your source data is command-like: move, lin
 
 ```ts
 import { vec3 } from 'gl-matrix';
-import { PathWriter, path } from 'path-math';
+import { path } from 'path-math';
 
-const writer = new PathWriter();
+const writer = path.writer();
 
 const route = writer
   .moveTo(vec3.fromValues(0, 0, 0))
@@ -154,13 +154,13 @@ Use `divisions` to control curve sampling density. Use `initialNormal` to lock t
 
 ## Geometry Building
 
-Use `tube.build(frames, options?)` and `ribbon.build(frames, options?)` to turn 3D path frames into renderer-neutral indexed geometry buffers.
+Use `geometry.createTube(frames, options?)` and `geometry.createRibbon(frames, options?)` to turn 3D path frames into renderer-neutral indexed geometry buffers.
 
 Both builders return plain arrays: `positions`, `normals`, `uvs`, `uvs2`, and `indices`. You can convert them to the buffer/attribute format required by t3d, three.js, WebGPU, or your own renderer.
 
 ```ts
 import { vec3 } from 'gl-matrix';
-import { path, ribbon, tube } from 'path-math';
+import { path, geometry } from 'path-math';
 
 const route = path.create();
 path.setPolyline(route, [
@@ -174,14 +174,14 @@ const frames = path.buildFrames(route, {
   initialNormal: vec3.fromValues(0, 0, 1)
 });
 
-const tubeGeometry = tube.build(frames, {
+const tubeGeometry = geometry.createTube(frames, {
   radius: 0.2,
   radialSegments: 12,
   generateStartCap: true,
   generateEndCap: true
 });
 
-const ribbonGeometry = ribbon.build(frames, {
+const ribbonGeometry = geometry.createRibbon(frames, {
   width: 1,
   side: 'both',
   arrow: false

@@ -19,6 +19,7 @@ export type {
   PolylineOptions,
   QuadraticBezierSegment,
   ReadonlyVector,
+  PathWriter,
   RibbonGeometryData,
   RibbonSide,
   Segment,

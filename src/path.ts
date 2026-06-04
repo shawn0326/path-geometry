@@ -1,6 +1,6 @@
 import { vec3 } from 'gl-matrix';
 import type { ReadonlyVec3 } from 'gl-matrix';
-import type { BeveledCurveOptions, BuildFramesOptions, Path, PathFrames, PointPreprocessOptions, PolylineOptions, Segment, SmoothCurveOptions } from './types';
+import type { BeveledCurveOptions, BuildFramesOptions, Path, PathFrames, PointPreprocessOptions, PolylineOptions, Segment, SmoothCurveOptions, PathWriter } from './types';
 import { segment } from './segment';
 import { clamp, EPSILON, rotateAroundAxis } from './helper';
 
@@ -221,7 +221,7 @@ export const path = {
    * Return a fluent writer that builds a path imperatively.
    * 返回一个链式 writer，以命令式方式构建 path。
    */
-  writer(targetPath?: Path) {
+  writer(targetPath?: Path): PathWriter {
     const target = targetPath ?? this.create();
     let currentPoint: vec3 | null = null;
     let subpathStart: vec3 | null = null;
@@ -263,7 +263,7 @@ export const path = {
     function toPath(): Path {
       return target;
     }
-    const api = { moveTo, lineTo, quadraticTo, cubicTo, close, clear, toPath };
+    const api: PathWriter = { moveTo, lineTo, quadraticTo, cubicTo, close, clear, toPath };
     return api;
   },
   /**
@@ -544,16 +544,6 @@ export const path = {
       else normalizeOrFallback(vec3.add(tangent, lastDir, nextDir), lastDir);
 
       if (transport) {
-        vec3.copy(normal, normals[i - 1]!);
-        vec3.cross(_axis, tangents[i - 1]!, tangent);
-        if (vec3.len(_axis) > EPSILON) {
-          vec3.normalize(_axis, _axis);
-          // rotateAroundAxis moved into helper functions used via transportNormal3
-          const theta = Math.acos(clamp(vec3.dot(tangents[i - 1]!, tangent), -1, 1));
-          // rotate within transportNormal3 is already handled, but here use transport flow
-          // We'll reuse transportNormal3 for the final result below by copying normal
-        }
-        // Use transportNormal3 to compute the transported normal
         transportNormal3(normal, normals[i - 1]!, tangents[i - 1]!, tangent);
         orthonormalize3(normal, binormal, tangent, normal);
       } else {

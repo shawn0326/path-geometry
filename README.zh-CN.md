@@ -36,9 +36,9 @@ GitHub Actions workflow 会在每次成功推送到 `master` 后，自动把 `do
 
 ```ts
 import { vec3 } from 'gl-matrix';
-import { PathWriter, path } from 'path-math';
+import { path } from 'path-math';
 
-const writer = new PathWriter();
+const writer = path.writer();
 
 const route = writer
   .moveTo(vec3.fromValues(0, 0, 0))
@@ -154,13 +154,13 @@ for (let i = 0; i < frames.points.length; i++) {
 
 ## 几何生成
 
-可以使用 `tube.build(frames, options?)` 和 `ribbon.build(frames, options?)`，把 3D path frames 转成与渲染器无关的索引几何数据。
+可以使用 `geometry.createTube(frames, options?)` 和 `geometry.createRibbon(frames, options?)`，把 3D path frames 转成与渲染器无关的索引几何数据。
 
 两个 builder 都返回普通数组：`positions`、`normals`、`uvs`、`uvs2` 和 `indices`。你可以按需要把它们转换成 t3d、three.js、WebGPU 或自定义 renderer 所需的 buffer/attribute 格式。
 
 ```ts
 import { vec3 } from 'gl-matrix';
-import { path, ribbon, tube } from 'path-math';
+import { path, geometry } from 'path-math';
 
 const route = path.create();
 path.setPolyline(route, [
@@ -174,14 +174,14 @@ const frames = path.buildFrames(route, {
   initialNormal: vec3.fromValues(0, 0, 1)
 });
 
-const tubeGeometry = tube.build(frames, {
+const tubeGeometry = geometry.createTube(frames, {
   radius: 0.2,
   radialSegments: 12,
   generateStartCap: true,
   generateEndCap: true
 });
 
-const ribbonGeometry = ribbon.build(frames, {
+const ribbonGeometry = geometry.createRibbon(frames, {
   width: 1,
   side: 'both',
   arrow: false

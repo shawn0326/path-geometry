@@ -145,6 +145,27 @@ export interface Path {
 }
 
 /**
+ * Fluent writer API for building a `Path` imperatively.
+ * 用于命令式构建 `Path` 的链式 writer 接口。
+ */
+export interface PathWriter {
+  /** Move the current point to `point` without creating a segment. */
+  moveTo(point: ReadonlyVector): PathWriter;
+  /** Add a straight line from the current point to `point`. */
+  lineTo(point: ReadonlyVector): PathWriter;
+  /** Add a quadratic Bezier from the current point to `point` using `control`. */
+  quadraticTo(control: ReadonlyVector, point: ReadonlyVector): PathWriter;
+  /** Add a cubic Bezier from the current point to `point` using two control points. */
+  cubicTo(control1: ReadonlyVector, control2: ReadonlyVector, point: ReadonlyVector): PathWriter;
+  /** Close the current subpath by adding a line to the subpath start when needed. */
+  close(): PathWriter;
+  /** Clear the writer's internal path. */
+  clear(): PathWriter;
+  /** Return the built `Path` instance. */
+  toPath(): Path;
+}
+
+/**
  * Options for building a path from polyline points.
  * 从折线点构建 path 的选项。
  */
