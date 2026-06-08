@@ -1,7 +1,7 @@
 {
-  "name": "path-math",
+  "name": "path-geometry",
   "version": "0.1.0",
-  "description": "A small path and curve math library built on gl-matrix.",
+  "description": "A small TypeScript geometry library for 3D paths, curves, frames, and mesh generation.",
   "license": "MIT",
   "author": "shawn0326",
   "type": "module",
@@ -19,12 +19,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/shawn0326/path-math.git"
+    "url": "git+https://github.com/shawn0326/path-geometry.git"
   },
   "bugs": {
-    "url": "https://github.com/shawn0326/path-math/issues"
+    "url": "https://github.com/shawn0326/path-geometry/issues"
   },
-  "homepage": "https://github.com/shawn0326/path-math#readme",
+  "homepage": "https://github.com/shawn0326/path-geometry#readme",
   "keywords": [
     "path",
     "curve",

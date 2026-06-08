@@ -306,7 +306,7 @@ export interface BuildRibbonOptions {
 }
 
 /**
- * Read-only 3D vector input accepted by path-math APIs.
- * path-math API 接受的只读三维向量输入。
+ * Read-only 3D vector input accepted by path-geometry APIs.
+ * path-geometry API 接受的只读三维向量输入。
  */
 export type ReadonlyVector = ReadonlyVec3;

@@ -1,26 +1,26 @@
-# path-math
+# path-geometry
 
 [Chinese README](./README.zh-CN.md)
 
-`path-math` is a small TypeScript math library for 3D paths, curves, frames, and geometry generation. It is based on `gl-matrix` and does not depend on t3d, three.js, DOM, Canvas, WebGL, or WebGPU.
+`path-geometry` is a small TypeScript geometry library for 3D paths, curves, frames, and mesh generation. It is based on `gl-matrix` and does not depend on t3d, three.js, DOM, Canvas, WebGL, or WebGPU.
 
 The first implementation follows the curve/path behavior from `t3d.js/examples/jsm/math/curves`, while exposing instance-style path APIs with `out` parameters where high-frequency calls matter.
 
 ## Status
 
-`path-math` is currently a `0.x` MVP. The core behavior is covered by tests, including selected runtime comparisons with `t3d`, but public APIs may still change before a stable `1.0.0` release.
+`path-geometry` is currently a `0.x` MVP. The core behavior is covered by tests, including selected runtime comparisons with `t3d`, but public APIs may still change before a stable `1.0.0` release.
 
 ## Install
 
 ```sh
-npm install path-math gl-matrix
+npm install path-geometry gl-matrix
 ```
 
 ## Documentation
 
 This README is the human overview and quick-start guide. Detailed API reference docs can be generated from JSDoc/TSDoc comments with TypeDoc:
 
-Online API documentation: https://shawn0326.github.io/path-math/
+Online API documentation: https://shawn0326.github.io/path-geometry/
 
 ```sh
 npm run docs
@@ -41,7 +41,7 @@ Create a path from an ordered `vec3` point array when your source data is alread
 For planar data, pass 3D points with `z = 0` instead of using a separate 2D API. Input vectors can be `gl-matrix` `vec3` values or plain `[x, y, z]` arrays.
 
 ```ts
-import { path } from 'path-math';
+import { path } from 'path-geometry';
 
 const rawPoints = [
   [0, 0, 0],
@@ -73,7 +73,7 @@ Create a path with `path.writer()` when your source data is command-like: move, 
 A writer bound to an existing path appends by default. Use `route.clear().writer()` or `route.writer().clear()` when you want to rebuild that path from scratch.
 
 ```ts
-import { path } from 'path-math';
+import { path } from 'path-geometry';
 
 const writer = path.writer();
 
@@ -159,7 +159,7 @@ Use `geometry.createTube(frames, options?)` and `geometry.createRibbon(frames, o
 Both builders return plain arrays: `positions`, `normals`, `uvs`, `uvs2`, and `indices`. You can convert them to the buffer/attribute format required by t3d, three.js, WebGPU, or your own renderer.
 
 ```ts
-import { path, geometry } from 'path-math';
+import { path, geometry } from 'path-geometry';
 
 const route = path.create();
 route.setPolyline([

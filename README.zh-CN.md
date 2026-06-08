@@ -1,26 +1,26 @@
-# path-math
+# path-geometry
 
 [English README](./README.md)
 
-`path-math` 是一个小型 TypeScript 数学库，用于 3D path、curve、frame 和 geometry 生成。它基于 `gl-matrix`，不依赖 t3d、three.js、DOM、Canvas、WebGL 或 WebGPU。
+`path-geometry` 是一个小型 TypeScript 几何库，用于 3D path、curve、frame 和 mesh 生成。它基于 `gl-matrix`，不依赖 t3d、three.js、DOM、Canvas、WebGL 或 WebGPU。
 
 第一版实现参考了 `t3d.js/examples/jsm/math/curves` 的 curve/path 行为，同时在高频调用场景中提供实例式 path API 和 `out` 参数优先的采样方法。
 
 ## 状态
 
-`path-math` 当前是 `0.x` MVP。核心行为已有测试覆盖，也包含部分与 npm `t3d` 包的运行时数值对照测试；但在稳定的 `1.0.0` 之前，公开 API 仍可能调整。
+`path-geometry` 当前是 `0.x` MVP。核心行为已有测试覆盖，也包含部分与 npm `t3d` 包的运行时数值对照测试；但在稳定的 `1.0.0` 之前，公开 API 仍可能调整。
 
 ## 安装
 
 ```sh
-npm install path-math gl-matrix
+npm install path-geometry gl-matrix
 ```
 
 ## 文档
 
 这个 README 作为人工维护的概览和快速上手文档。详细 API reference 可以通过 JSDoc/TSDoc 注释和 TypeDoc 生成：
 
-在线 API 文档：https://shawn0326.github.io/path-math/
+在线 API 文档：https://shawn0326.github.io/path-geometry/
 
 ```sh
 npm run docs
@@ -41,7 +41,7 @@ GitHub Actions workflow 会在每次成功推送到 `master` 后，自动把 `do
 对于平面数据，使用 `z = 0` 的三维点输入，而不是单独的 2D API。输入向量既可以是 `gl-matrix` 的 `vec3`，也可以是普通 `[x, y, z]` 数组。
 
 ```ts
-import { path } from 'path-math';
+import { path } from 'path-geometry';
 
 const rawPoints = [
   [0, 0, 0],
@@ -74,7 +74,7 @@ route.setPolyline(points, { close: true });
 
 ```ts
 import { vec3 } from 'gl-matrix';
-import { path } from 'path-math';
+import { path } from 'path-geometry';
 
 const writer = path.writer();
 
@@ -160,7 +160,7 @@ for (let i = 0; i < frames.points.length; i++) {
 两个 builder 都返回普通数组：`positions`、`normals`、`uvs`、`uvs2` 和 `indices`。你可以按需要把它们转换成 t3d、three.js、WebGPU 或自定义 renderer 所需的 buffer/attribute 格式。
 
 ```ts
-import { path, geometry } from 'path-math';
+import { path, geometry } from 'path-geometry';
 
 const route = path.create();
 route.setPolyline([
