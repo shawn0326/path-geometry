@@ -18,7 +18,44 @@ declare module 't3d/examples/jsm/math/curves/CubicBezierCurve3.js' {
 
   export class CubicBezierCurve3 {
     constructor(v0?: Vector3, v1?: Vector3, v2?: Vector3, v3?: Vector3);
+    isCubicBezierCurve3?: boolean;
+    v0: Vector3;
+    v1: Vector3;
+    v2: Vector3;
+    v3: Vector3;
+    getPoint(t: number): Vector3;
     getPointAt(u: number): Vector3;
+    getLength(): number;
+    getLengths(divisions?: number): number[];
+    getPoints(divisions?: number): Vector3[];
+    getSpacedPoints(divisions?: number): Vector3[];
+  }
+}
+
+declare module 't3d/examples/jsm/math/curves/LineCurve3.js' {
+  import { Vector3 } from 't3d';
+
+  export class LineCurve3 {
+    constructor(v1?: Vector3, v2?: Vector3);
+    getPoint(t: number): Vector3;
+    getPointAt(u: number): Vector3;
+    getLength(): number;
+    getLengths(divisions?: number): number[];
+    getPoints(divisions?: number): Vector3[];
+    getSpacedPoints(divisions?: number): Vector3[];
+  }
+}
+
+declare module 't3d/examples/jsm/math/curves/QuadraticBezierCurve3.js' {
+  import { Vector3 } from 't3d';
+
+  export class QuadraticBezierCurve3 {
+    constructor(v0?: Vector3, v1?: Vector3, v2?: Vector3);
+    getPoint(t: number): Vector3;
+    getPointAt(u: number): Vector3;
+    getLength(): number;
+    getLengths(divisions?: number): number[];
+    getPoints(divisions?: number): Vector3[];
     getSpacedPoints(divisions?: number): Vector3[];
   }
 }
@@ -39,6 +76,10 @@ declare module 't3d/examples/jsm/math/curves/CurvePath3.js' {
       v2?: Vector3;
       v3?: Vector3;
     }>;
+    getPoint(t: number): Vector3;
+    getLength(): number;
+    getLengths(): number[];
+    getPoints(divisions?: number): Vector3[];
     computeFrames(options?: {
       up?: Vector3;
       divisions?: number;
