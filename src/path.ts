@@ -2,7 +2,7 @@ import { vec3 } from './vector';
 import type { Vector3, ReadonlyVector3 } from './vector';
 import type { BeveledCurveOptions, BuildFramesOptions, Path, PathFrames, PointPreprocessOptions, PolylineOptions, Segment, SmoothCurveOptions, PathWriter } from './types';
 import { segment } from './segment';
-import { clamp, EPSILON, rotateAroundAxis } from './helper';
+import { clamp, EPSILON, resolveDivisions, rotateAroundAxis } from './helper';
 
 const _p3a = vec3.create();
 const _p3b = vec3.create();
@@ -193,6 +193,28 @@ function setPathPolyline(path: PathState, points: ReadonlyVector3[], options: Po
 
 function setPathSmoothCurve(path: PathState, points: ReadonlyVector3[], options: SmoothCurveOptions = {}): Path {
   const smooth = options.smooth || 0;
+  const close = options.close === true;
+  if (close) {
+    const closedPoints = points.length > 1 && vecEquals(points[0]!, points[points.length - 1]!)
+      ? points.slice(0, -1)
+      : points;
+    if (closedPoints.length < 3 || smooth === 0) {
+      return setPathPolyline(path, closedPoints, { close: true });
+    }
+
+    const extendedPoints = [
+      closedPoints[closedPoints.length - 1]!,
+      ...closedPoints,
+      closedPoints[0]!,
+      closedPoints[1]!
+    ];
+    setPathSmoothCurve(path, extendedPoints, { smooth });
+    path.segments.pop();
+    path.segments.shift();
+    markPathDirty(path);
+    return path;
+  }
+
   if (points.length < 2 || smooth === 0 || points.length === 2) {
     return setPathPolyline(path, points, options);
   }
@@ -288,7 +310,7 @@ function setPathBeveledCurve(path: PathState, points: ReadonlyVector3[], options
 
 function getPathPoints(path: Path, divisions = 12): Vector3[] {
   const points: Vector3[] = [];
-  const resolvedDivisions = Math.max(1, Math.floor(divisions));
+  const resolvedDivisions = resolveDivisions(divisions, 12);
   for (let i = 0; i < path.segments.length; i++) {
     const segment_ = path.segments[i]!;
     const resolution = segment_.type === 'line' ? 1 : resolvedDivisions;
@@ -305,9 +327,10 @@ function getPathPoints(path: Path, divisions = 12): Vector3[] {
 
 function getPathSpacedPoints(path: Path, divisions = 5): Vector3[] {
   const points: Vector3[] = [];
-  for (let i = 0; i <= divisions; i++) {
+  const resolvedDivisions = resolveDivisions(divisions, 5);
+  for (let i = 0; i <= resolvedDivisions; i++) {
     const point = vec3.create();
-    path.pointAtU(point, divisions === 0 ? 0 : i / divisions);
+    path.pointAtU(point, i / resolvedDivisions);
     points.push(point);
   }
   return points;
@@ -315,7 +338,7 @@ function getPathSpacedPoints(path: Path, divisions = 5): Vector3[] {
 
 function buildPathFrames(path: Path, options: BuildFramesOptions = {}): PathFrames {
   const initialNormal = options.initialNormal ?? null;
-  const divisions = options.divisions !== undefined ? options.divisions : 12;
+  const divisions = resolveDivisions(options.divisions, 12);
   const transport = options.transport !== undefined ? options.transport : true;
   const fixLine = options.fixLine !== undefined ? options.fixLine : true;
   const close = options.close !== undefined ? options.close : false;

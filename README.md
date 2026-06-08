@@ -2,13 +2,13 @@
 
 [Chinese README](./README.zh-CN.md)
 
-`path-geometry` is a small dependency-free TypeScript geometry library for 3D paths, curves, frames, and mesh generation. It does not depend on t3d, three.js, DOM, Canvas, WebGL, or WebGPU.
+`path-geometry` is a small dependency-free TypeScript geometry library for 3D paths, curves, frames, and mesh generation. It does not depend on a rendering engine, DOM, Canvas, WebGL, or WebGPU.
 
-The first implementation follows the curve/path behavior from `t3d.js/examples/jsm/math/curves`, while exposing instance-style path APIs with `out` parameters where high-frequency calls matter.
+It exposes instance-style path APIs with `out` parameters where high-frequency calls matter.
 
 ## Status
 
-`path-geometry` is currently a `0.x` MVP. The core behavior is covered by tests, including selected runtime comparisons with `t3d`, but public APIs may still change before a stable `1.0.0` release.
+`path-geometry` is currently a `0.x` MVP. The core behavior is covered by tests, but public APIs may still change before a stable `1.0.0` release.
 
 ## Install
 
@@ -57,7 +57,7 @@ route.setSmoothCurve(rawPoints, { smooth: 0.25 });
 route.setBeveledCurve(rawPoints, { bevelRadius: 2 });
 ```
 
-Path constructors do not implicitly filter points. This keeps runtime cost low and stays close to t3d behavior. If input data may contain consecutive duplicate points, call `preprocessPoints` explicitly before constructing a path.
+Path constructors do not implicitly filter points. This keeps runtime cost low and leaves input normalization under application control. If input data may contain consecutive duplicate points, call `preprocessPoints` explicitly before constructing a path.
 
 ```ts
 const points = path.preprocessPoints(rawPoints, { close: true });
@@ -121,7 +121,7 @@ const evenlySpaced = route.getSpacedPoints(32);
 
 Use `route.buildFrames(options?)` when you need stable orientation data along a 3D path, especially for mesh generation such as tubes, ribbons, roads, rails, strokes, or extruded path geometry.
 
-`buildFrames` follows the t3d `CurvePath3.computeFrames` behavior. It samples each segment, keeps line segments at one division, and returns both the sampled path points and the frame data needed to place geometry along the path:
+`buildFrames` samples each segment, keeps line segments at one division, and returns both the sampled path points and the frame data needed to place geometry along the path:
 
 - `points`
 - `tangents`
@@ -156,7 +156,7 @@ Use `divisions` to control curve sampling density. Use `initialNormal` to lock t
 
 Use `geometry.createTube(frames, options?)` and `geometry.createRibbon(frames, options?)` to turn 3D path frames into renderer-neutral indexed geometry buffers.
 
-Both builders return plain arrays: `positions`, `normals`, `uvs`, `uvs2`, and `indices`. You can convert them to the buffer/attribute format required by t3d, three.js, WebGPU, or your own renderer.
+Both builders return plain arrays: `positions`, `normals`, `uvs`, `uvs2`, and `indices`. You can convert them to the buffer/attribute format required by WebGL, WebGPU, or your renderer.
 
 ```ts
 import { path, geometry } from 'path-geometry';
@@ -209,17 +209,13 @@ Use `route.markDirty(true)` after direct edits to `route.segments[i].p0`, `p1`, 
 
 ## Tests
 
-The test suite includes fixed fixtures and runtime comparisons against the npm `t3d` package for selected curve and frame behavior.
+The test suite includes fixed fixtures and runtime checks for curve, path, frame, and geometry behavior.
 
 ```sh
 npm run typecheck
 npm run test
 npm run build
 ```
-
-## t3d Reference
-
-Curve and path behavior is intentionally based on the curve utilities in [`t3d.js`](https://github.com/uinosoft/t3d.js), especially `examples/jsm/math/curves`. `t3d` is licensed under BSD-3-Clause. This project is not a t3d dependency and does not bundle t3d in the runtime package; `t3d` is used only as a development dependency for selected comparison tests.
 
 ## License
 

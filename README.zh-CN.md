@@ -2,13 +2,13 @@
 
 [English README](./README.md)
 
-`path-geometry` 是一个无依赖的小型 TypeScript 几何库，用于 3D path、curve、frame 和 mesh 生成。它不依赖 t3d、three.js、DOM、Canvas、WebGL 或 WebGPU。
+`path-geometry` 是一个无依赖的小型 TypeScript 几何库，用于 3D path、curve、frame 和 mesh 生成。它不依赖渲染引擎、DOM、Canvas、WebGL 或 WebGPU。
 
-第一版实现参考了 `t3d.js/examples/jsm/math/curves` 的 curve/path 行为，同时在高频调用场景中提供实例式 path API 和 `out` 参数优先的采样方法。
+它在高频调用场景中提供实例式 path API 和 `out` 参数优先的采样方法。
 
 ## 状态
 
-`path-geometry` 当前是 `0.x` MVP。核心行为已有测试覆盖，也包含部分与 npm `t3d` 包的运行时数值对照测试；但在稳定的 `1.0.0` 之前，公开 API 仍可能调整。
+`path-geometry` 当前是 `0.x` MVP。核心行为已有测试覆盖；但在稳定的 `1.0.0` 之前，公开 API 仍可能调整。
 
 ## 安装
 
@@ -57,7 +57,7 @@ route.setSmoothCurve(rawPoints, { smooth: 0.25 });
 route.setBeveledCurve(rawPoints, { bevelRadius: 2 });
 ```
 
-path 构建方法不会隐式过滤点。这样可以降低运行时成本，并尽量保持接近 t3d 的行为。如果输入数据可能包含连续重复点，可以在构建 path 前显式调用 `preprocessPoints`。
+path 构建方法不会隐式过滤点。这样可以降低运行时成本，并由应用自行控制输入规范化。如果输入数据可能包含连续重复点，可以在构建 path 前显式调用 `preprocessPoints`。
 
 ```ts
 const points = path.preprocessPoints(rawPoints, { close: true });
@@ -121,7 +121,7 @@ const evenlySpaced = route.getSpacedPoints(32);
 
 当需要沿 3D path 获取稳定的方向数据时，可以使用 `route.buildFrames(options?)`。它尤其适合 tube、ribbon、road、rail、stroke 或 extruded path geometry 等网格生成场景。
 
-`buildFrames` 参考 t3d `CurvePath3.computeFrames` 行为。它会对每个 segment 采样，line segment 保持一个 division，并返回用于沿 path 放置几何体的采样点和 frame 数据：
+`buildFrames` 会对每个 segment 采样，line segment 保持一个 division，并返回用于沿 path 放置几何体的采样点和 frame 数据：
 
 - `points`
 - `tangents`
@@ -156,7 +156,7 @@ for (let i = 0; i < frames.points.length; i++) {
 
 可以使用 `geometry.createTube(frames, options?)` 和 `geometry.createRibbon(frames, options?)`，把 3D path frames 转成与渲染器无关的索引几何数据。
 
-两个 builder 都返回普通数组：`positions`、`normals`、`uvs`、`uvs2` 和 `indices`。你可以按需要把它们转换成 t3d、three.js、WebGPU 或自定义 renderer 所需的 buffer/attribute 格式。
+两个 builder 都返回普通数组：`positions`、`normals`、`uvs`、`uvs2` 和 `indices`。你可以按需要把它们转换成 WebGL、WebGPU 或自定义 renderer 所需的 buffer/attribute 格式。
 
 ```ts
 import { path, geometry } from 'path-geometry';
@@ -209,17 +209,13 @@ route.markDirty(true);
 
 ## 测试
 
-测试套件包含固定 fixture，以及部分与 npm `t3d` 包的运行时 curve/frame 行为对照测试。
+测试套件包含固定 fixture，以及针对 curve、path、frame 和 geometry 行为的运行时检查。
 
 ```sh
 npm run typecheck
 npm run test
 npm run build
 ```
-
-## t3d 参考
-
-curve 和 path 行为有意参考 [`t3d.js`](https://github.com/uinosoft/t3d.js) 中的 curve 工具，尤其是 `examples/jsm/math/curves`。`t3d` 使用 BSD-3-Clause license。本项目运行时不依赖 t3d，也不会在运行时包中打包 t3d；`t3d` 只作为开发依赖，用于部分对照测试。
 
 ## License
 

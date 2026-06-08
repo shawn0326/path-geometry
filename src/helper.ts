@@ -7,6 +7,11 @@ export function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
 
+export function resolveDivisions(value: number | undefined, defaultValue: number): number {
+  const fallback = Number.isFinite(defaultValue) ? Math.max(1, Math.floor(defaultValue)) : 1;
+  return Number.isFinite(value) ? Math.max(1, Math.floor(value!)) : fallback;
+}
+
 
 const _cross = vec3.create();
 

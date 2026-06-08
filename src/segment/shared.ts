@@ -1,7 +1,7 @@
 import { vec3 } from '../vector';
 import type { Vector3 } from '../vector';
 import type { Segment } from '../types';
-import { clamp, EPSILON } from '../helper';
+import { clamp, EPSILON, resolveDivisions } from '../helper';
 
 interface SegmentMetrics {
   divisions: number;
@@ -33,7 +33,7 @@ export function getSegmentLengths<S, V>(
   divisions: number | undefined,
   ops: SegmentOps<S, V>
 ): number[] {
-  const resolvedDivisions = Math.max(1, Math.floor(divisions ?? segment.arcLengthDivisions ?? 200));
+  const resolvedDivisions = resolveDivisions(divisions, segment.arcLengthDivisions ?? 200);
   const metrics = segment._metrics;
   if (metrics && metrics.divisions === resolvedDivisions && !metrics.needsUpdate && !segment._needsUpdate) {
     return metrics.lengths;
@@ -71,7 +71,7 @@ export function getSegmentLength<S, V>(
 }
 
 export function getSegmentPoints<S, V>(segment: S, divisions: number | undefined, ops: SegmentOps<S, V>): V[] {
-  const resolvedDivisions = Math.max(1, Math.floor(divisions ?? 5));
+  const resolvedDivisions = resolveDivisions(divisions, 5);
   const points: V[] = [];
   for (let i = 0; i <= resolvedDivisions; i++) {
     const point = ops.createVector();
@@ -86,7 +86,7 @@ export function getSegmentSpacedPoints<S, V>(
   divisions: number | undefined,
   ops: SegmentOps<S, V>
 ): V[] {
-  const resolvedDivisions = Math.max(1, Math.floor(divisions ?? 5));
+  const resolvedDivisions = resolveDivisions(divisions, 5);
   const points: V[] = [];
   for (let i = 0; i <= resolvedDivisions; i++) {
     const point = ops.createVector();

@@ -325,6 +325,38 @@ describe('paths', () => {
     expectVec3Close(p.segments[1]!.p3, vec3.fromValues(20, 10, 0));
   });
 
+  it('builds a closed cubic curve when requested', () => {
+    const p = path.create().setSmoothCurve([
+      vec3.fromValues(0, 0, 0),
+      vec3.fromValues(10, 0, 0),
+      vec3.fromValues(10, 10, 0),
+      vec3.fromValues(0, 10, 0)
+    ], { smooth: 0.3, close: true });
+
+    expect(p.segments).toHaveLength(4);
+    expect(p.segments.every(segment => segment.type === 'cubic-bezier')).toBe(true);
+    const first = p.segments[0]!;
+    const last = p.segments[3]!;
+    if (first.type !== 'cubic-bezier' || last.type !== 'cubic-bezier') return;
+    expectVec3Close(first.p0, vec3.fromValues(0, 0, 0));
+    expectVec3Close(last.p3, first.p0);
+  });
+
+  it('does not duplicate an explicit closing point for smooth curves', () => {
+    const p = path.create().setSmoothCurve([
+      vec3.fromValues(0, 0, 0),
+      vec3.fromValues(10, 0, 0),
+      vec3.fromValues(10, 10, 0),
+      vec3.fromValues(0, 0, 0)
+    ], { smooth: 0.3, close: true });
+
+    expect(p.segments).toHaveLength(3);
+    const last = p.segments[2]!;
+    expect(last.type).toBe('cubic-bezier');
+    if (last.type !== 'cubic-bezier') return;
+    expectVec3Close(last.p3, vec3.fromValues(0, 0, 0));
+  });
+
   it('matches t3d beveled curve construction', () => {
     const p = path.create();
     p.setBeveledCurve([
@@ -456,6 +488,29 @@ describe('paths', () => {
       expect(Number.isNaN(point[0]!)).toBe(false);
       expect(Number.isNaN(point[1]!)).toBe(false);
       expect(Number.isNaN(point[2]!)).toBe(false);
+    }
+  });
+
+  it('normalizes invalid sampling divisions across path and segment APIs', () => {
+    const p = path.create().addSegment(segment.createCubicBezier(
+      vec3.fromValues(0, 0, 0),
+      vec3.fromValues(1, 0, 0),
+      vec3.fromValues(2, 0, 0),
+      vec3.fromValues(3, 0, 0)
+    ));
+    const curve = p.segments[0]!;
+
+    expect(p.getPoints(Number.NaN)).toHaveLength(13);
+    expect(p.getSpacedPoints(Number.POSITIVE_INFINITY)).toHaveLength(6);
+    expect(p.getSpacedPoints(-1)).toHaveLength(2);
+    expect(curve.getPoints(Number.NaN)).toHaveLength(6);
+    expect(curve.getSpacedPoints(Number.POSITIVE_INFINITY)).toHaveLength(6);
+    expect(curve.getLengths(-1)).toHaveLength(2);
+
+    const frames = p.buildFrames({ divisions: 0 });
+    expect(frames.points).toHaveLength(2);
+    for (const point of frames.points) {
+      expect(point.every(Number.isFinite)).toBe(true);
     }
   });
 
