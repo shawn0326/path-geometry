@@ -2,7 +2,7 @@
 
 [English README](./README.md)
 
-`path-geometry` 是一个小型 TypeScript 几何库，用于 3D path、curve、frame 和 mesh 生成。它基于 `gl-matrix`，不依赖 t3d、three.js、DOM、Canvas、WebGL 或 WebGPU。
+`path-geometry` 是一个无依赖的小型 TypeScript 几何库，用于 3D path、curve、frame 和 mesh 生成。它不依赖 t3d、three.js、DOM、Canvas、WebGL 或 WebGPU。
 
 第一版实现参考了 `t3d.js/examples/jsm/math/curves` 的 curve/path 行为，同时在高频调用场景中提供实例式 path API 和 `out` 参数优先的采样方法。
 
@@ -13,7 +13,7 @@
 ## 安装
 
 ```sh
-npm install path-geometry gl-matrix
+npm install path-geometry
 ```
 
 ## 文档
@@ -32,13 +32,13 @@ GitHub Actions workflow 会在每次成功推送到 `master` 后，自动把 `do
 
 ## 基础用法：从点生成
 
-当数据来源已经是一组有序 `vec3` 点，比如 polyline 或 route，可以从点数组生成 path。使用 `path.create()` 创建 `Path` 实例，然后通过实例方法构建或查询它：
+当数据来源已经是一组有序三维点，比如 polyline 或 route，可以从点数组生成 path。使用 `path.create()` 创建 `Path` 实例，然后通过实例方法构建或查询它：
 
 - `setPolyline` 用直线 segment 连接点。
 - `setSmoothCurve` 生成穿过这些点的平滑 cubic curve。
 - `setBeveledCurve` 保留直线段，并用 quadratic bevel 对拐角做圆角处理。
 
-对于平面数据，使用 `z = 0` 的三维点输入，而不是单独的 2D API。输入向量既可以是 `gl-matrix` 的 `vec3`，也可以是普通 `[x, y, z]` 数组。
+对于平面数据，使用 `z = 0` 的三维点输入，而不是单独的 2D API。向量输入和输出均为按 `[x, y, z]` 排列的普通 number 数组。
 
 ```ts
 import { path } from 'path-geometry';
@@ -73,7 +73,6 @@ route.setPolyline(points, { close: true });
 绑定到已有 path 的 writer 默认会追加 segment。如果想从头重建这个 path，可以使用 `route.clear().writer()` 或 `route.writer().clear()`。
 
 ```ts
-import { vec3 } from 'gl-matrix';
 import { path } from 'path-geometry';
 
 const writer = path.writer();

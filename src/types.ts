@@ -1,4 +1,4 @@
-import type { vec3, ReadonlyVec3 } from 'gl-matrix';
+import type { Vector3, ReadonlyVector3 } from './vector';
 
 /**
  * A 3D straight line segment.
@@ -7,23 +7,23 @@ import type { vec3, ReadonlyVec3 } from 'gl-matrix';
 export interface LineSegment {
   type: 'line';
   /** Start point. 起点。*/
-  p0: vec3;
+  p0: Vector3;
   /** End point. 终点。*/
-  p1: vec3;
+  p1: Vector3;
   /** Evaluate point at raw parameter t. 在原始参数 t 处求点。*/
-  pointAt(out: vec3, t: number): vec3;
+  pointAt(out: Vector3, t: number): Vector3;
   /** Evaluate point at arc-length normalized parameter u. 在弧长归一化参数 u 处求点。*/
-  pointAtU(out: vec3, u: number): vec3;
+  pointAtU(out: Vector3, u: number): Vector3;
   /** Evaluate unit tangent at raw parameter t. 在原始参数 t 处求单位切线。*/
-  tangentAt(out: vec3, t: number): vec3;
+  tangentAt(out: Vector3, t: number): Vector3;
   /** Get approximate arc length. 获取近似弧长。*/
   getLength(): number;
   /** Get cumulative arc-length table. 获取累计弧长表。*/
   getLengths(divisions?: number): number[];
   /** Sample points by raw parameter. 按原始参数采样点。*/
-  getPoints(divisions?: number): vec3[];
+  getPoints(divisions?: number): Vector3[];
   /** Sample evenly arc-length spaced points. 等弧长采样点。*/
-  getSpacedPoints(divisions?: number): vec3[];
+  getSpacedPoints(divisions?: number): Vector3[];
   /** Map normalized arc-length u to raw parameter t. 将归一化弧长 u 映射到原始参数 t。*/
   mapUToT(u: number, distance?: number): number;
   /** Mark internal caches dirty. 标记内部缓存为失效。*/
@@ -37,25 +37,25 @@ export interface LineSegment {
 export interface QuadraticBezierSegment {
   type: 'quadratic-bezier';
   /** Start point. 起点。*/
-  p0: vec3;
+  p0: Vector3;
   /** Control point. 控制点。*/
-  p1: vec3;
+  p1: Vector3;
   /** End point. 终点。*/
-  p2: vec3;
+  p2: Vector3;
   /** Evaluate point at raw parameter t. 在原始参数 t 处求点。*/
-  pointAt(out: vec3, t: number): vec3;
+  pointAt(out: Vector3, t: number): Vector3;
   /** Evaluate point at arc-length normalized parameter u. 在弧长归一化参数 u 处求点。*/
-  pointAtU(out: vec3, u: number): vec3;
+  pointAtU(out: Vector3, u: number): Vector3;
   /** Evaluate unit tangent at raw parameter t. 在原始参数 t 处求单位切线。*/
-  tangentAt(out: vec3, t: number): vec3;
+  tangentAt(out: Vector3, t: number): Vector3;
   /** Get approximate arc length. 获取近似弧长。*/
   getLength(): number;
   /** Get cumulative arc-length table. 获取累计弧长表。*/
   getLengths(divisions?: number): number[];
   /** Sample points by raw parameter. 按原始参数采样点。*/
-  getPoints(divisions?: number): vec3[];
+  getPoints(divisions?: number): Vector3[];
   /** Sample evenly arc-length spaced points. 等弧长采样点。*/
-  getSpacedPoints(divisions?: number): vec3[];
+  getSpacedPoints(divisions?: number): Vector3[];
   /** Map normalized arc-length u to raw parameter t. 将归一化弧长 u 映射到原始参数 t。*/
   mapUToT(u: number, distance?: number): number;
   /** Mark internal caches dirty. 标记内部缓存为失效。*/
@@ -69,27 +69,27 @@ export interface QuadraticBezierSegment {
 export interface CubicBezierSegment {
   type: 'cubic-bezier';
   /** Start point. 起点。*/
-  p0: vec3;
+  p0: Vector3;
   /** First control point. 第一控制点。*/
-  p1: vec3;
+  p1: Vector3;
   /** Second control point. 第二控制点。*/
-  p2: vec3;
+  p2: Vector3;
   /** End point. 终点。*/
-  p3: vec3;
+  p3: Vector3;
   /** Evaluate point at raw parameter t. 在原始参数 t 处求点。*/
-  pointAt(out: vec3, t: number): vec3;
+  pointAt(out: Vector3, t: number): Vector3;
   /** Evaluate point at arc-length normalized parameter u. 在弧长归一化参数 u 处求点。*/
-  pointAtU(out: vec3, u: number): vec3;
+  pointAtU(out: Vector3, u: number): Vector3;
   /** Evaluate unit tangent at raw parameter t. 在原始参数 t 处求单位切线。*/
-  tangentAt(out: vec3, t: number): vec3;
+  tangentAt(out: Vector3, t: number): Vector3;
   /** Get approximate arc length. 获取近似弧长。*/
   getLength(): number;
   /** Get cumulative arc-length table. 获取累计弧长表。*/
   getLengths(divisions?: number): number[];
   /** Sample points by raw parameter. 按原始参数采样点。*/
-  getPoints(divisions?: number): vec3[];
+  getPoints(divisions?: number): Vector3[];
   /** Sample evenly arc-length spaced points. 等弧长采样点。*/
-  getSpacedPoints(divisions?: number): vec3[];
+  getSpacedPoints(divisions?: number): Vector3[];
   /** Map normalized arc-length u to raw parameter t. 将归一化弧长 u 映射到原始参数 t。*/
   mapUToT(u: number, distance?: number): number;
   /** Mark internal caches dirty. 标记内部缓存为失效。*/
@@ -118,27 +118,27 @@ export interface Path {
   /** Return a fluent writer bound to this path. 返回绑定到当前 path 的链式 writer。*/
   writer(): PathWriter;
   /** Replace contents with a polyline through the given points. 用给定点的折线替换内容。*/
-  setPolyline(points: ReadonlyVec3[], options?: PolylineOptions): Path;
+  setPolyline(points: ReadonlyVector3[], options?: PolylineOptions): Path;
   /** Replace contents with t3d-style smooth cubic curves. 用 t3d 风格平滑三次曲线替换内容。*/
-  setSmoothCurve(points: ReadonlyVec3[], options?: SmoothCurveOptions): Path;
+  setSmoothCurve(points: ReadonlyVector3[], options?: SmoothCurveOptions): Path;
   /** Replace contents with straight edges and beveled corners. 用直边加倒角曲线替换内容。*/
-  setBeveledCurve(points: ReadonlyVec3[], options?: BeveledCurveOptions): Path;
+  setBeveledCurve(points: ReadonlyVector3[], options?: BeveledCurveOptions): Path;
   /** Get the total arc length of the path. 获取 path 的总弧长。*/
   getLength(): number;
   /** Get cumulative arc-length table across all segments. 获取累计弧长表。*/
   getLengths(): number[];
   /** Evaluate the point at normalized arc-length u. 在归一化弧长参数 u 处求点。*/
-  pointAtU(out: vec3, u: number): vec3;
+  pointAtU(out: Vector3, u: number): Vector3;
   /** Evaluate the unit tangent at normalized arc-length u. 在归一化弧长参数 u 处求单位切线。*/
-  tangentAtU(out: vec3, u: number): vec3;
+  tangentAtU(out: Vector3, u: number): Vector3;
   /** Evaluate the point at a given arc distance. 在指定弧长处求点。*/
-  pointAtDistance(out: vec3, distance: number): vec3;
+  pointAtDistance(out: Vector3, distance: number): Vector3;
   /** Evaluate the unit tangent at a given arc distance. 在指定弧长处求单位切线。*/
-  tangentAtDistance(out: vec3, distance: number): vec3;
+  tangentAtDistance(out: Vector3, distance: number): Vector3;
   /** Sample points by raw parameter. 按原始参数采样点。*/
-  getPoints(divisions?: number): vec3[];
+  getPoints(divisions?: number): Vector3[];
   /** Sample evenly arc-length spaced points. 等弧长采样点。*/
-  getSpacedPoints(divisions?: number): vec3[];
+  getSpacedPoints(divisions?: number): Vector3[];
   /** Build orthonormal 3D frames along the path. 沿 path 构建正交 3D frame。*/
   buildFrames(options?: BuildFramesOptions): PathFrames;
 }
@@ -214,15 +214,15 @@ export interface PointPreprocessOptions {
  */
 export interface PathFrames {
   /** Sampled path points. 采样 path 点。*/
-  points: vec3[];
+  points: Vector3[];
   /** Unit tangents at sampled points. 采样点处的单位切线。*/
-  tangents: vec3[];
+  tangents: Vector3[];
   /** Unit normals at sampled points. 采样点处的单位法线。*/
-  normals: vec3[];
+  normals: Vector3[];
   /** Unit binormals at sampled points. 采样点处的单位副法线。*/
-  binormals: vec3[];
+  binormals: Vector3[];
   /** Corner bisectors matching the t3d frame output. 匹配 t3d frame 输出的转角二等分向量。*/
-  bisectors: vec3[];
+  bisectors: Vector3[];
   /** Cumulative distances along sampled points. 沿采样点的累计距离。*/
   lengths: number[];
   /** Width scale hints for corner joins. 转角连接处的宽度缩放系数。*/
@@ -239,7 +239,7 @@ export interface PathFrames {
  */
 export interface BuildFramesOptions {
   /** Initial normal direction. When omitted, a stable perpendicular axis is chosen. 初始法线方向，省略时自动选择稳定的垂直轴。*/
-  initialNormal?: ReadonlyVec3 | null;
+  initialNormal?: ReadonlyVector3 | null;
   /** Number of samples per non-line segment. Line segments always use one division. 非直线 segment 的采样数，直线 segment 始终使用一个分段。*/
   divisions?: number;
   /** Use parallel-transport frame propagation. 使用平行传输法传播 frame。*/
@@ -309,4 +309,5 @@ export interface BuildRibbonOptions {
  * Read-only 3D vector input accepted by path-geometry APIs.
  * path-geometry API 接受的只读三维向量输入。
  */
-export type ReadonlyVector = ReadonlyVec3;
+export type ReadonlyVector = ReadonlyVector3;
+export type { Vector3 };

@@ -1,5 +1,5 @@
-import { vec3 } from 'gl-matrix';
-import type { ReadonlyVec3 } from 'gl-matrix';
+import { vec3 } from '../vector';
+import type { Vector3, ReadonlyVector3 } from '../vector';
 import type { LineSegment } from '../types';
 import { getSegmentLength, getSegmentLengths, getSegmentPoints, getSegmentSpacedPoints, mapUToT, markSegmentDirty, segmentOps } from './shared';
 import type { SegmentCacheState } from './shared';
@@ -13,28 +13,28 @@ type LineSegmentState = LineSegment & SegmentCacheState;
  */
 class LineSegmentImpl implements LineSegment {
   type: 'line' = 'line';
-  p0: vec3;
-  p1: vec3;
+  p0: Vector3;
+  p1: Vector3;
   arcLengthDivisions = 1;
   _needsUpdate = true;
 
-  constructor(p0: ReadonlyVec3 = vec3.create(), p1: ReadonlyVec3 = vec3.create()) {
+  constructor(p0: ReadonlyVector3 = vec3.create(), p1: ReadonlyVector3 = vec3.create()) {
     this.p0 = vec3.clone(p0);
     this.p1 = vec3.clone(p1);
   }
 
-  pointAt(out: vec3, t: number): vec3 {
-    out[0] = this.p0[0] + (this.p1[0] - this.p0[0]) * t;
-    out[1] = this.p0[1] + (this.p1[1] - this.p0[1]) * t;
-    out[2] = this.p0[2] + (this.p1[2] - this.p0[2]) * t;
+  pointAt(out: Vector3, t: number): Vector3 {
+    out[0] = this.p0[0]! + (this.p1[0]! - this.p0[0]!) * t;
+    out[1] = this.p0[1]! + (this.p1[1]! - this.p0[1]!) * t;
+    out[2] = this.p0[2]! + (this.p1[2]! - this.p0[2]!) * t;
     return out;
   }
 
-  pointAtU(out: vec3, u: number): vec3 {
+  pointAtU(out: Vector3, u: number): Vector3 {
     return this.pointAt(out, u);
   }
 
-  tangentAt(out: vec3, t: number): vec3 {
+  tangentAt(out: Vector3, t: number): Vector3 {
     vec3.sub(out, this.p1, this.p0);
     if (vec3.len(out) <= EPSILON) {
       out[0] = 1;
@@ -53,11 +53,11 @@ class LineSegmentImpl implements LineSegment {
     return getSegmentLengths(this as LineSegmentState, divisions ?? 1, segmentOps);
   }
 
-  getPoints(divisions?: number): vec3[] {
+  getPoints(divisions?: number): Vector3[] {
     return getSegmentPoints(this as LineSegmentState, divisions, segmentOps);
   }
 
-  getSpacedPoints(divisions?: number): vec3[] {
+  getSpacedPoints(divisions?: number): Vector3[] {
     return getSegmentSpacedPoints(this as LineSegmentState, divisions, segmentOps);
   }
 
@@ -69,6 +69,6 @@ class LineSegmentImpl implements LineSegment {
     markSegmentDirty(this);
   }
 }
-export function createLine(p0: ReadonlyVec3 = vec3.create(), p1: ReadonlyVec3 = vec3.create()): LineSegment {
+export function createLine(p0: ReadonlyVector3 = vec3.create(), p1: ReadonlyVector3 = vec3.create()): LineSegment {
   return new LineSegmentImpl(p0, p1);
 }

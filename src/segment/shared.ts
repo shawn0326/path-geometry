@@ -1,4 +1,5 @@
-import { vec3 } from 'gl-matrix';
+import { vec3 } from '../vector';
+import type { Vector3 } from '../vector';
 import type { Segment } from '../types';
 import { clamp, EPSILON } from '../helper';
 
@@ -38,7 +39,7 @@ export function getSegmentLengths<S, V>(
     return metrics.lengths;
   }
 
-  const lengths: number[] = [0];
+  const lengths: number[] = [0]!;
   const last = ops.createVector();
   const current = ops.createVector();
   ops.pointAt(last, segment, 0);
@@ -138,11 +139,11 @@ export function mapUToT<S, V>(
   return (i + (targetArcLength - lengthBefore) / segmentLength) / (il - 1);
 }
 
-export const segmentOps: SegmentOps<Segment, vec3> = {
-  pointAt(out: vec3, segment: Segment, t: number): vec3 {
+export const segmentOps: SegmentOps<Segment, Vector3> = {
+  pointAt(out: Vector3, segment: Segment, t: number): Vector3 {
     return segment.pointAt(out, t);
   },
-  tangentAt(out: vec3, segment: Segment, t: number): vec3 {
+  tangentAt(out: Vector3, segment: Segment, t: number): Vector3 {
     return segment.tangentAt(out, t);
   },
   distance: vec3.distance,

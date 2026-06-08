@@ -1,5 +1,5 @@
-import { vec3 } from 'gl-matrix';
-import type { ReadonlyVec3 } from 'gl-matrix';
+import { vec3 } from '../vector';
+import type { Vector3, ReadonlyVector3 } from '../vector';
 import type { BuildTubeOptions, GeometryData, PathFrames } from '../types';
 import { rotateAroundAxis } from '../helper';
 
@@ -36,7 +36,7 @@ function normalizeScale(value: number | undefined): number {
   return value;
 }
 
-function scaleAlong(out: vec3, value: ReadonlyVec3, axis: ReadonlyVec3, scale: number): vec3 {
+function scaleAlong(out: Vector3, value: ReadonlyVector3, axis: ReadonlyVector3, scale: number): Vector3 {
   const axisLengthSq = vec3.squaredLength(axis);
 
   if (axisLengthSq <= 0) {
@@ -47,21 +47,21 @@ function scaleAlong(out: vec3, value: ReadonlyVec3, axis: ReadonlyVec3, scale: n
   const projection = vec3.dot(value, axis) / axisLengthSq;
   const factor = projection * (scale - 1);
 
-  out[0] = value[0] + axis[0] * factor;
-  out[1] = value[1] + axis[1] * factor;
-  out[2] = value[2] + axis[2] * factor;
+  out[0] = value[0]! + axis[0]! * factor;
+  out[1] = value[1]! + axis[1]! * factor;
+  out[2] = value[2]! + axis[2]! * factor;
 
   return out;
 }
 
-function pushVec3(target: number[], value: ReadonlyVec3): void {
-  target.push(value[0], value[1], value[2]);
+function pushVec3(target: number[], value: ReadonlyVector3): void {
+  target.push(value[0]!, value[1]!, value[2]!);
 }
 
 function pushDuplicateVertex(
   geometry: GeometryData,
   sourceIndex: number,
-  normal: ReadonlyVec3
+  normal: ReadonlyVector3
 ): void {
   const positionOffset = sourceIndex * 3;
   const uvOffset = sourceIndex * 2;

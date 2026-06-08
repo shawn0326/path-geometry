@@ -1,5 +1,5 @@
-import { vec3 } from 'gl-matrix';
-import type { ReadonlyVec3 } from 'gl-matrix';
+import { vec3 } from '../vector';
+import type { Vector3, ReadonlyVector3 } from '../vector';
 import type { BuildRibbonOptions, GeometryData, RibbonSide, PathFrames } from '../types';
 
 const DEFAULT_WIDTH = 0.1;
@@ -30,17 +30,17 @@ function normalizeSide(value: RibbonSide | undefined): RibbonSide {
   return value === 'left' || value === 'right' ? value : 'both';
 }
 
-function pushVec3(target: number[], value: ReadonlyVec3): void {
-  target.push(value[0], value[1], value[2]);
+function pushVec3(target: number[], value: ReadonlyVector3): void {
+  target.push(value[0]!, value[1]!, value[2]!);
 }
 
-function pushNormal(target: number[], normal: ReadonlyVec3, count: number): void {
+function pushNormal(target: number[], normal: ReadonlyVector3, count: number): void {
   for (let i = 0; i < count; i++) {
     pushVec3(target, normal);
   }
 }
 
-function readLastVertex(out: vec3, positions: number[], offsetFromEnd: number): vec3 {
+function readLastVertex(out: Vector3, positions: number[], offsetFromEnd: number): Vector3 {
   const index = positions.length - offsetFromEnd;
   out[0] = positions[index]!;
   out[1] = positions[index + 1]!;
@@ -48,7 +48,7 @@ function readLastVertex(out: vec3, positions: number[], offsetFromEnd: number): 
   return out;
 }
 
-function setLength(out: vec3, value: ReadonlyVec3, length: number): vec3 {
+function setLength(out: Vector3, value: ReadonlyVector3, length: number): Vector3 {
   const currentLength = vec3.length(value);
 
   if (currentLength <= 0 || !Number.isFinite(currentLength)) {
@@ -60,14 +60,14 @@ function setLength(out: vec3, value: ReadonlyVec3, length: number): vec3 {
 }
 
 function computeEdge(
-  out: vec3,
-  point: ReadonlyVec3,
-  binormal: ReadonlyVec3,
+  out: Vector3,
+  point: ReadonlyVector3,
+  binormal: ReadonlyVector3,
   halfWidth: number,
   widthScale: number,
   sign: number,
   enabled: boolean
-): vec3 {
+): Vector3 {
   if (!enabled) {
     vec3.copy(out, point);
     return out;
@@ -78,9 +78,9 @@ function computeEdge(
 
 function pushSimplePair(
   geometry: GeometryData,
-  left: ReadonlyVec3,
-  right: ReadonlyVec3,
-  normal: ReadonlyVec3,
+  left: ReadonlyVector3,
+  right: ReadonlyVector3,
+  normal: ReadonlyVector3,
   uvU: number,
   uvU2: number
 ): void {

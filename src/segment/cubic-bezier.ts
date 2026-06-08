@@ -1,5 +1,5 @@
-import { vec3 } from 'gl-matrix';
-import type { ReadonlyVec3 } from 'gl-matrix';
+import { vec3 } from '../vector';
+import type { Vector3, ReadonlyVector3 } from '../vector';
 import type { CubicBezierSegment } from '../types';
 import { getSegmentLength, getSegmentLengths, getSegmentPoints, getSegmentSpacedPoints, mapUToT, markSegmentDirty, segmentOps } from './shared';
 import type { SegmentCacheState } from './shared';
@@ -13,37 +13,37 @@ type CubicBezierSegmentState = CubicBezierSegment & SegmentCacheState;
  */
 class CubicBezierSegmentImpl implements CubicBezierSegment {
   type: 'cubic-bezier' = 'cubic-bezier';
-  p0: vec3;
-  p1: vec3;
-  p2: vec3;
-  p3: vec3;
+  p0: Vector3;
+  p1: Vector3;
+  p2: Vector3;
+  p3: Vector3;
   arcLengthDivisions = 200;
   _needsUpdate = true;
 
-  constructor(p0: ReadonlyVec3 = vec3.create(), p1: ReadonlyVec3 = vec3.create(), p2: ReadonlyVec3 = vec3.create(), p3: ReadonlyVec3 = vec3.create()) {
+  constructor(p0: ReadonlyVector3 = vec3.create(), p1: ReadonlyVector3 = vec3.create(), p2: ReadonlyVector3 = vec3.create(), p3: ReadonlyVector3 = vec3.create()) {
     this.p0 = vec3.clone(p0);
     this.p1 = vec3.clone(p1);
     this.p2 = vec3.clone(p2);
     this.p3 = vec3.clone(p3);
   }
 
-  pointAt(out: vec3, t: number): vec3 {
+  pointAt(out: Vector3, t: number): Vector3 {
     const k = 1 - t;
-    out[0] = k * k * k * this.p0[0] + 3 * k * k * t * this.p1[0] + 3 * k * t * t * this.p2[0] + t * t * t * this.p3[0];
-    out[1] = k * k * k * this.p0[1] + 3 * k * k * t * this.p1[1] + 3 * k * t * t * this.p2[1] + t * t * t * this.p3[1];
-    out[2] = k * k * k * this.p0[2] + 3 * k * k * t * this.p1[2] + 3 * k * t * t * this.p2[2] + t * t * t * this.p3[2];
+    out[0] = k * k * k * this.p0[0]! + 3 * k * k * t * this.p1[0]! + 3 * k * t * t * this.p2[0]! + t * t * t * this.p3[0]!;
+    out[1] = k * k * k * this.p0[1]! + 3 * k * k * t * this.p1[1]! + 3 * k * t * t * this.p2[1]! + t * t * t * this.p3[1]!;
+    out[2] = k * k * k * this.p0[2]! + 3 * k * k * t * this.p1[2]! + 3 * k * t * t * this.p2[2]! + t * t * t * this.p3[2]!;
     return out;
   }
 
-  pointAtU(out: vec3, u: number): vec3 {
+  pointAtU(out: Vector3, u: number): Vector3 {
     return this.pointAt(out, this.mapUToT(u));
   }
 
-  tangentAt(out: vec3, t: number): vec3 {
+  tangentAt(out: Vector3, t: number): Vector3 {
     const k = 1 - t;
-    out[0] = 3 * k * k * (this.p1[0] - this.p0[0]) + 6 * k * t * (this.p2[0] - this.p1[0]) + 3 * t * t * (this.p3[0] - this.p2[0]);
-    out[1] = 3 * k * k * (this.p1[1] - this.p0[1]) + 6 * k * t * (this.p2[1] - this.p1[1]) + 3 * t * t * (this.p3[1] - this.p2[1]);
-    out[2] = 3 * k * k * (this.p1[2] - this.p0[2]) + 6 * k * t * (this.p2[2] - this.p1[2]) + 3 * t * t * (this.p3[2] - this.p2[2]);
+    out[0] = 3 * k * k * (this.p1[0]! - this.p0[0]!) + 6 * k * t * (this.p2[0]! - this.p1[0]!) + 3 * t * t * (this.p3[0]! - this.p2[0]!);
+    out[1] = 3 * k * k * (this.p1[1]! - this.p0[1]!) + 6 * k * t * (this.p2[1]! - this.p1[1]!) + 3 * t * t * (this.p3[1]! - this.p2[1]!);
+    out[2] = 3 * k * k * (this.p1[2]! - this.p0[2]!) + 6 * k * t * (this.p2[2]! - this.p1[2]!) + 3 * t * t * (this.p3[2]! - this.p2[2]!);
     if (vec3.len(out) <= EPSILON) {
       out[0] = 1;
       out[1] = 0;
@@ -61,11 +61,11 @@ class CubicBezierSegmentImpl implements CubicBezierSegment {
     return getSegmentLengths(this as CubicBezierSegmentState, divisions, segmentOps);
   }
 
-  getPoints(divisions?: number): vec3[] {
+  getPoints(divisions?: number): Vector3[] {
     return getSegmentPoints(this as CubicBezierSegmentState, divisions, segmentOps);
   }
 
-  getSpacedPoints(divisions?: number): vec3[] {
+  getSpacedPoints(divisions?: number): Vector3[] {
     return getSegmentSpacedPoints(this as CubicBezierSegmentState, divisions, segmentOps);
   }
 
@@ -77,6 +77,6 @@ class CubicBezierSegmentImpl implements CubicBezierSegment {
     markSegmentDirty(this);
   }
 }
-export function createCubicBezier(p0: ReadonlyVec3 = vec3.create(), p1: ReadonlyVec3 = vec3.create(), p2: ReadonlyVec3 = vec3.create(), p3: ReadonlyVec3 = vec3.create()): CubicBezierSegment {
+export function createCubicBezier(p0: ReadonlyVector3 = vec3.create(), p1: ReadonlyVector3 = vec3.create(), p2: ReadonlyVector3 = vec3.create(), p3: ReadonlyVector3 = vec3.create()): CubicBezierSegment {
   return new CubicBezierSegmentImpl(p0, p1, p2, p3);
 }

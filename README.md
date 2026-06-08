@@ -2,7 +2,7 @@
 
 [Chinese README](./README.zh-CN.md)
 
-`path-geometry` is a small TypeScript geometry library for 3D paths, curves, frames, and mesh generation. It is based on `gl-matrix` and does not depend on t3d, three.js, DOM, Canvas, WebGL, or WebGPU.
+`path-geometry` is a small dependency-free TypeScript geometry library for 3D paths, curves, frames, and mesh generation. It does not depend on t3d, three.js, DOM, Canvas, WebGL, or WebGPU.
 
 The first implementation follows the curve/path behavior from `t3d.js/examples/jsm/math/curves`, while exposing instance-style path APIs with `out` parameters where high-frequency calls matter.
 
@@ -13,7 +13,7 @@ The first implementation follows the curve/path behavior from `t3d.js/examples/j
 ## Install
 
 ```sh
-npm install path-geometry gl-matrix
+npm install path-geometry
 ```
 
 ## Documentation
@@ -32,13 +32,13 @@ The GitHub Actions workflow deploys `docs/api/` to GitHub Pages automatically af
 
 ## Basic Usage: From Points
 
-Create a path from an ordered `vec3` point array when your source data is already a polyline or route. Use `path.create()` to create a `Path` instance, then call instance methods to build or query it:
+Create a path from an ordered 3D point array when your source data is already a polyline or route. Use `path.create()` to create a `Path` instance, then call instance methods to build or query it:
 
 - `setPolyline` connects points with straight line segments.
 - `setSmoothCurve` builds smooth cubic curves through the points.
 - `setBeveledCurve` keeps straight sections and rounds corners with quadratic bevels.
 
-For planar data, pass 3D points with `z = 0` instead of using a separate 2D API. Input vectors can be `gl-matrix` `vec3` values or plain `[x, y, z]` arrays.
+For planar data, pass 3D points with `z = 0` instead of using a separate 2D API. Vector inputs and outputs are plain number arrays in `[x, y, z]` order.
 
 ```ts
 import { path } from 'path-geometry';

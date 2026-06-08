@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { vec3 } from 'gl-matrix';
+import { vec3 } from '../src/vector';
+import type { Vector3 } from '../src/vector';
 import { Vector3 as T3DVector3 } from 't3d';
 import { LineCurve3 as T3DLineCurve3 } from 't3d/examples/jsm/math/curves/LineCurve3.js';
 import { QuadraticBezierCurve3 as T3DQuadraticBezierCurve3 } from 't3d/examples/jsm/math/curves/QuadraticBezierCurve3.js';
@@ -10,24 +11,24 @@ import type { Path, PathFrames, PolylineOptions, ReadonlyVector } from '../src/i
 
 const EPS = 1e-5;
 
-function expectVec3Close(actual: vec3, expected: vec3, epsilon = EPS): void {
-  expect(actual[0]).toBeCloseTo(expected[0], 5);
-  expect(actual[1]).toBeCloseTo(expected[1], 5);
-  expect(actual[2]).toBeCloseTo(expected[2], 5);
-  expect(Math.abs(actual[0] - expected[0])).toBeLessThanOrEqual(epsilon);
-  expect(Math.abs(actual[1] - expected[1])).toBeLessThanOrEqual(epsilon);
-  expect(Math.abs(actual[2] - expected[2])).toBeLessThanOrEqual(epsilon);
+function expectVec3Close(actual: Vector3, expected: Vector3, epsilon = EPS): void {
+  expect(actual[0]!).toBeCloseTo(expected[0]!, 5);
+  expect(actual[1]!).toBeCloseTo(expected[1]!, 5);
+  expect(actual[2]!).toBeCloseTo(expected[2]!, 5);
+  expect(Math.abs(actual[0]! - expected[0]!)).toBeLessThanOrEqual(epsilon);
+  expect(Math.abs(actual[1]! - expected[1]!)).toBeLessThanOrEqual(epsilon);
+  expect(Math.abs(actual[2]! - expected[2]!)).toBeLessThanOrEqual(epsilon);
 }
 
-function vec3FromT3D(v: T3DVector3): vec3 {
+function vec3FromT3D(v: T3DVector3): Vector3 {
   return vec3.fromValues(v.x, v.y, v.z);
 }
 
 function toT3DVector3(v: ReadonlyVector): T3DVector3 {
-  return new T3DVector3(v[0], v[1], v[2]);
+  return new T3DVector3(v[0]!, v[1]!, v[2]!);
 }
 
-function expectT3DPointsClose(actual: vec3[], expected: T3DVector3[], epsilon = EPS): void {
+function expectT3DPointsClose(actual: Vector3[], expected: T3DVector3[], epsilon = EPS): void {
   expect(actual).toHaveLength(expected.length);
   for (let i = 0; i < expected.length; i++) {
     expectVec3Close(actual[i]!, vec3FromT3D(expected[i]!), epsilon);
@@ -99,6 +100,16 @@ function createStraightFrames(): PathFrames {
 }
 
 describe('segments', () => {
+  it('uses plain number arrays for vector outputs', () => {
+    const line = segment.createLine([0, 0, 0], [1, 2, 3]);
+    const frames = path.create().setPolyline([[0, 0, 0], [1, 0, 0]]).buildFrames();
+
+    expect(Array.isArray(line.p0)).toBe(true);
+    expect(Array.isArray(line.getPoints(1)[0]!)).toBe(true);
+    expect(Array.isArray(frames.points[0]!)).toBe(true);
+    expect(Array.isArray(frames.tangents[0]!)).toBe(true);
+  });
+
   it('samples line endpoints and length', () => {
     const seg = segment.createLine(vec3.fromValues(0, 0, 0), vec3.fromValues(3, 4, 0));
     const out = vec3.create();
@@ -379,18 +390,18 @@ describe('paths', () => {
     const oursSmooth = path.create();
     oursSmooth.setSmoothCurve(duplicatePoints, { smooth: 0.3 });
     const t3dSmooth = new T3DCurvePath3();
-    t3dSmooth.setSmoothCurves(duplicatePoints.map(point => new T3DVector3(point[0], point[1], point[2])), { smooth: 0.3 });
+    t3dSmooth.setSmoothCurves(duplicatePoints.map(point => new T3DVector3(point[0]!, point[1]!, point[2]!)), { smooth: 0.3 });
     expect(oursSmooth.segments).toHaveLength(t3dSmooth.curves.length);
     expect(oursSmooth.segments[0]!.type).toBe('cubic-bezier');
     expect(oursSmooth.segments[1]!.type).toBe('cubic-bezier');
     if (oursSmooth.segments[1]!.type !== 'cubic-bezier') return;
-    expect(Number.isNaN(oursSmooth.segments[1]!.p1[0])).toBe(true);
+    expect(Number.isNaN(oursSmooth.segments[1]!.p1[0]!)).toBe(true);
     expect(Number.isNaN(t3dSmooth.curves[1]!.v1!.x)).toBe(true);
 
     const oursBeveled = path.create();
     oursBeveled.setBeveledCurve(duplicatePoints, { bevelRadius: 2 });
     const t3dBeveled = new T3DCurvePath3();
-    t3dBeveled.setBeveledCurves(duplicatePoints.map(point => new T3DVector3(point[0], point[1], point[2])), { bevelRadius: 2 });
+    t3dBeveled.setBeveledCurves(duplicatePoints.map(point => new T3DVector3(point[0]!, point[1]!, point[2]!)), { bevelRadius: 2 });
     expect(oursBeveled.segments).toHaveLength(t3dBeveled.curves.length);
     expect(oursBeveled.segments.map(segment => segment.type)).toEqual(['line', 'quadratic-bezier', 'line']);
   });
@@ -442,9 +453,9 @@ describe('paths', () => {
     const points = p.getPoints(0);
     expect(points).toHaveLength(2);
     for (const point of points) {
-      expect(Number.isNaN(point[0])).toBe(false);
-      expect(Number.isNaN(point[1])).toBe(false);
-      expect(Number.isNaN(point[2])).toBe(false);
+      expect(Number.isNaN(point[0]!)).toBe(false);
+      expect(Number.isNaN(point[1]!)).toBe(false);
+      expect(Number.isNaN(point[2]!)).toBe(false);
     }
   });
 
@@ -586,7 +597,7 @@ describe('paths', () => {
     });
 
     const t3dPath = new T3DCurvePath3();
-    t3dPath.setPolylines(points.map(point => new T3DVector3(point[0], point[1], point[2])), { close: true });
+    t3dPath.setPolylines(points.map(point => new T3DVector3(point[0]!, point[1]!, point[2]!)), { close: true });
     const t3d = t3dPath.computeFrames({
       divisions: 3,
       up: new T3DVector3(0, 0, 1),

@@ -22,5 +22,6 @@ export type {
   PathWriter,
   RibbonSide,
   Segment,
-  SmoothCurveOptions
+  SmoothCurveOptions,
+  Vector3
 } from './types';

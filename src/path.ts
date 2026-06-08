@@ -1,5 +1,5 @@
-import { vec3 } from 'gl-matrix';
-import type { ReadonlyVec3 } from 'gl-matrix';
+import { vec3 } from './vector';
+import type { Vector3, ReadonlyVector3 } from './vector';
 import type { BeveledCurveOptions, BuildFramesOptions, Path, PathFrames, PointPreprocessOptions, PolylineOptions, Segment, SmoothCurveOptions, PathWriter } from './types';
 import { segment } from './segment';
 import { clamp, EPSILON, rotateAroundAxis } from './helper';
@@ -20,13 +20,13 @@ type PathState = Path & {
   _needsUpdate?: boolean;
 };
 
-function initialNormal3(out: vec3, tangent: ReadonlyVec3, initialNormal?: ReadonlyVec3 | null): vec3 {
+function initialNormal3(out: Vector3, tangent: ReadonlyVector3, initialNormal?: ReadonlyVector3 | null): Vector3 {
   if (initialNormal) {
     vec3.copy(out, initialNormal);
   } else {
-    const tx = Math.abs(tangent[0]);
-    const ty = Math.abs(tangent[1]);
-    const tz = Math.abs(tangent[2]);
+    const tx = Math.abs(tangent[0]!);
+    const ty = Math.abs(tangent[1]!);
+    const tz = Math.abs(tangent[2]!);
     if (tx <= ty && tx <= tz) vec3.set(out, 1, 0, 0);
     else if (ty <= tx && ty <= tz) vec3.set(out, 0, 1, 0);
     else vec3.set(out, 0, 0, 1);
@@ -34,7 +34,7 @@ function initialNormal3(out: vec3, tangent: ReadonlyVec3, initialNormal?: Readon
   return out;
 }
 
-function transportNormal3(out: vec3, previousNormal: ReadonlyVec3, previousTangent: ReadonlyVec3, tangent: ReadonlyVec3): vec3 {
+function transportNormal3(out: Vector3, previousNormal: ReadonlyVector3, previousTangent: ReadonlyVector3, tangent: ReadonlyVector3): Vector3 {
   vec3.cross(_axis, previousTangent, tangent);
   if (vec3.len(_axis) > EPSILON) {
     vec3.normalize(_axis, _axis);
@@ -46,7 +46,7 @@ function transportNormal3(out: vec3, previousNormal: ReadonlyVec3, previousTange
   return out;
 }
 
-function orthonormalize3(outNormal: vec3, outBinormal: vec3, tangent: ReadonlyVec3, normal: ReadonlyVec3): void {
+function orthonormalize3(outNormal: Vector3, outBinormal: Vector3, tangent: ReadonlyVector3, normal: ReadonlyVector3): void {
   vec3.cross(outBinormal, tangent, normal);
   if (vec3.len(outBinormal) <= EPSILON) {
     initialNormal3(outNormal, tangent);
@@ -57,14 +57,14 @@ function orthonormalize3(outNormal: vec3, outBinormal: vec3, tangent: ReadonlyVe
   vec3.normalize(outNormal, outNormal);
 }
 
-function vecEquals(a: ReadonlyVec3, b: ReadonlyVec3): boolean {
-  return a[0] === b[0] && a[1] === b[1] && a[2] === b[2];
+function vecEquals(a: ReadonlyVector3, b: ReadonlyVector3): boolean {
+  return a[0] === b[0]! && a[1] === b[1]! && a[2] === b[2]!;
 }
 
-function preprocessInputPoints(points: ReadonlyVec3[], options: PointPreprocessOptions = {}): vec3[] {
+function preprocessInputPoints(points: ReadonlyVector3[], options: PointPreprocessOptions = {}): Vector3[] {
   const removeConsecutiveDuplicates = options.removeConsecutiveDuplicates !== false;
   const removeClosingDuplicate = options.removeClosingDuplicate ?? options.close === true;
-  const normalized: vec3[] = [];
+  const normalized: Vector3[] = [];
   for (const point of points) {
     const previous = normalized[normalized.length - 1];
     if (!removeConsecutiveDuplicates || !previous || !vecEquals(previous, point)) {
@@ -77,28 +77,28 @@ function preprocessInputPoints(points: ReadonlyVec3[], options: PointPreprocessO
   return normalized;
 }
 
-function componentMin(out: vec3, a: ReadonlyVec3, b: ReadonlyVec3): vec3 {
-  out[0] = Math.min(a[0], b[0]);
-  out[1] = Math.min(a[1], b[1]);
-  out[2] = Math.min(a[2], b[2]);
+function componentMin(out: Vector3, a: ReadonlyVector3, b: ReadonlyVector3): Vector3 {
+  out[0] = Math.min(a[0]!, b[0]!);
+  out[1] = Math.min(a[1]!, b[1]!);
+  out[2] = Math.min(a[2]!, b[2]!);
   return out;
 }
 
-function componentMax(out: vec3, a: ReadonlyVec3, b: ReadonlyVec3): vec3 {
-  out[0] = Math.max(a[0], b[0]);
-  out[1] = Math.max(a[1], b[1]);
-  out[2] = Math.max(a[2], b[2]);
+function componentMax(out: Vector3, a: ReadonlyVector3, b: ReadonlyVector3): Vector3 {
+  out[0] = Math.max(a[0]!, b[0]!);
+  out[1] = Math.max(a[1]!, b[1]!);
+  out[2] = Math.max(a[2]!, b[2]!);
   return out;
 }
 
-function clampPointBetween(out: vec3, value: ReadonlyVec3, a: ReadonlyVec3, b: ReadonlyVec3): vec3 {
+function clampPointBetween(out: Vector3, value: ReadonlyVector3, a: ReadonlyVector3, b: ReadonlyVector3): Vector3 {
   componentMax(_p3a, a, b);
   componentMin(_p3b, value, _p3a);
   componentMin(_p3a, a, b);
   return componentMax(out, _p3b, _p3a);
 }
 
-function normalizeOrFallback(out: vec3, fallback?: ReadonlyVec3): vec3 {
+function normalizeOrFallback(out: Vector3, fallback?: ReadonlyVector3): Vector3 {
   if (vec3.len(out) <= EPSILON) {
     if (fallback) vec3.copy(out, fallback);
     else vec3.set(out, 1, 0, 0);
@@ -152,7 +152,7 @@ function findSegmentDistance(lengths: number[], distance: number): { index: numb
   return { index: lengths.length - 1, localDistance: total - (lengths[lengths.length - 2] ?? 0) };
 }
 
-function pathPointAtDistance(out: vec3, path: PathState, distance: number): vec3 {
+function pathPointAtDistance(out: Vector3, path: PathState, distance: number): Vector3 {
   const lengths = getPathLengths(path);
   const found = findSegmentDistance(lengths, distance);
   const segment_ = path.segments[found.index];
@@ -163,7 +163,7 @@ function pathPointAtDistance(out: vec3, path: PathState, distance: number): vec3
   return segment_.pointAt(out, t);
 }
 
-function pathTangentAtDistance(out: vec3, path: PathState, distance: number): vec3 {
+function pathTangentAtDistance(out: Vector3, path: PathState, distance: number): Vector3 {
   const lengths = getPathLengths(path);
   const found = findSegmentDistance(lengths, distance);
   const segment_ = path.segments[found.index];
@@ -174,7 +174,7 @@ function pathTangentAtDistance(out: vec3, path: PathState, distance: number): ve
   return segment_.tangentAt(out, t);
 }
 
-function setPathPolyline(path: PathState, points: ReadonlyVec3[], options: PolylineOptions = {}): Path {
+function setPathPolyline(path: PathState, points: ReadonlyVector3[], options: PolylineOptions = {}): Path {
   path.segments.length = 0;
   const close = options.close === true;
   if (points.length < 2) {
@@ -191,7 +191,7 @@ function setPathPolyline(path: PathState, points: ReadonlyVec3[], options: Polyl
   return path;
 }
 
-function setPathSmoothCurve(path: PathState, points: ReadonlyVec3[], options: SmoothCurveOptions = {}): Path {
+function setPathSmoothCurve(path: PathState, points: ReadonlyVector3[], options: SmoothCurveOptions = {}): Path {
   const smooth = options.smooth || 0;
   if (points.length < 2 || smooth === 0 || points.length === 2) {
     return setPathPolyline(path, points, options);
@@ -240,7 +240,7 @@ function setPathSmoothCurve(path: PathState, points: ReadonlyVec3[], options: Sm
   return path;
 }
 
-function setPathBeveledCurve(path: PathState, points: ReadonlyVec3[], options: BeveledCurveOptions = {}): Path {
+function setPathBeveledCurve(path: PathState, points: ReadonlyVector3[], options: BeveledCurveOptions = {}): Path {
   const bevelRadius = options.bevelRadius || 0;
   const close = options.close || false;
   if (points.length < 2 || bevelRadius === 0 || points.length === 2) {
@@ -281,13 +281,13 @@ function setPathBeveledCurve(path: PathState, points: ReadonlyVec3[], options: B
     vec3.copy(p0, bezierEnd);
   }
 
-  if (close && path.segments[0]?.type === 'line') vec3.copy(path.segments[0].p0, p0);
+  if (close && path.segments[0]!?.type === 'line') vec3.copy(path.segments[0]!.p0, p0);
   markPathDirty(path);
   return path;
 }
 
-function getPathPoints(path: Path, divisions = 12): vec3[] {
-  const points: vec3[] = [];
+function getPathPoints(path: Path, divisions = 12): Vector3[] {
+  const points: Vector3[] = [];
   const resolvedDivisions = Math.max(1, Math.floor(divisions));
   for (let i = 0; i < path.segments.length; i++) {
     const segment_ = path.segments[i]!;
@@ -303,8 +303,8 @@ function getPathPoints(path: Path, divisions = 12): vec3[] {
   return points;
 }
 
-function getPathSpacedPoints(path: Path, divisions = 5): vec3[] {
-  const points: vec3[] = [];
+function getPathSpacedPoints(path: Path, divisions = 5): Vector3[] {
+  const points: Vector3[] = [];
   for (let i = 0; i <= divisions; i++) {
     const point = vec3.create();
     path.pointAtU(point, divisions === 0 ? 0 : i / divisions);
@@ -320,11 +320,11 @@ function buildPathFrames(path: Path, options: BuildFramesOptions = {}): PathFram
   const fixLine = options.fixLine !== undefined ? options.fixLine : true;
   const close = options.close !== undefined ? options.close : false;
 
-  const points: vec3[] = [];
-  const tangents: vec3[] = [];
-  const normals: vec3[] = [];
-  const binormals: vec3[] = [];
-  const bisectors: vec3[] = [];
+  const points: Vector3[] = [];
+  const tangents: Vector3[] = [];
+  const normals: Vector3[] = [];
+  const binormals: Vector3[] = [];
+  const bisectors: Vector3[] = [];
   const lengths: number[] = [];
   const widthScales: number[] = [];
   const sharps: boolean[] = [];
@@ -358,12 +358,12 @@ function buildPathFrames(path: Path, options: BuildFramesOptions = {}): PathFram
   normals[0] = vec3.create();
   binormals[0] = vec3.create();
   bisectors[0] = vec3.create();
-  if (points[1]) vec3.sub(tangents[0], points[1], points[0]!);
-  else vec3.set(tangents[0], 1, 0, 0);
-  normalizeOrFallback(tangents[0]);
-  initialNormal3(normals[0], tangents[0], initialNormal);
-  orthonormalize3(normals[0], binormals[0], tangents[0], normals[0]);
-  vec3.copy(bisectors[0], binormals[0]);
+  if (points[1]!) vec3.sub(tangents[0]!, points[1]!, points[0]!);
+  else vec3.set(tangents[0]!, 1, 0, 0);
+  normalizeOrFallback(tangents[0]!);
+  initialNormal3(normals[0]!, tangents[0]!, initialNormal);
+  orthonormalize3(normals[0]!, binormals[0]!, tangents[0]!, normals[0]!);
+  vec3.copy(bisectors[0]!, binormals[0]!);
   lengths[0] = 0;
   widthScales[0] = 1;
   sharps[0] = false;
@@ -471,15 +471,15 @@ class PathImpl implements Path {
     return path.writer(this);
   }
 
-  setPolyline(points: ReadonlyVec3[], options?: PolylineOptions): Path {
+  setPolyline(points: ReadonlyVector3[], options?: PolylineOptions): Path {
     return setPathPolyline(this, points, options);
   }
 
-  setSmoothCurve(points: ReadonlyVec3[], options?: SmoothCurveOptions): Path {
+  setSmoothCurve(points: ReadonlyVector3[], options?: SmoothCurveOptions): Path {
     return setPathSmoothCurve(this, points, options);
   }
 
-  setBeveledCurve(points: ReadonlyVec3[], options?: BeveledCurveOptions): Path {
+  setBeveledCurve(points: ReadonlyVector3[], options?: BeveledCurveOptions): Path {
     return setPathBeveledCurve(this, points, options);
   }
 
@@ -491,27 +491,27 @@ class PathImpl implements Path {
     return getPathLengths(this);
   }
 
-  pointAtU(out: vec3, u: number): vec3 {
+  pointAtU(out: Vector3, u: number): Vector3 {
     return this.pointAtDistance(out, clamp(u, 0, 1) * this.getLength());
   }
 
-  tangentAtU(out: vec3, u: number): vec3 {
+  tangentAtU(out: Vector3, u: number): Vector3 {
     return this.tangentAtDistance(out, clamp(u, 0, 1) * this.getLength());
   }
 
-  pointAtDistance(out: vec3, distance: number): vec3 {
+  pointAtDistance(out: Vector3, distance: number): Vector3 {
     return pathPointAtDistance(out, this, distance);
   }
 
-  tangentAtDistance(out: vec3, distance: number): vec3 {
+  tangentAtDistance(out: Vector3, distance: number): Vector3 {
     return pathTangentAtDistance(out, this, distance);
   }
 
-  getPoints(divisions?: number): vec3[] {
+  getPoints(divisions?: number): Vector3[] {
     return getPathPoints(this, divisions);
   }
 
-  getSpacedPoints(divisions?: number): vec3[] {
+  getSpacedPoints(divisions?: number): Vector3[] {
     return getPathSpacedPoints(this, divisions);
   }
 
@@ -549,7 +549,7 @@ export const path = {
    * Preprocess a raw point array (remove duplicates, handle closing).
    * 预处理原始点数组（移除重复点、处理闭合）。
    */
-  preprocessPoints(points: ReadonlyVec3[], options: PointPreprocessOptions = {}): vec3[] {
+  preprocessPoints(points: ReadonlyVector3[], options: PointPreprocessOptions = {}): Vector3[] {
     return preprocessInputPoints(points, options);
   },
 
@@ -559,30 +559,30 @@ export const path = {
    */
   writer(targetPath?: Path): PathWriter {
     const target = targetPath ?? this.create();
-    let currentPoint: vec3 | null = null;
-    let subpathStart: vec3 | null = null;
+    let currentPoint: Vector3 | null = null;
+    let subpathStart: Vector3 | null = null;
 
-    function moveTo(point: ReadonlyVec3) {
+    function moveTo(point: ReadonlyVector3) {
       currentPoint = vec3.clone(point);
       subpathStart = vec3.clone(point);
       return api;
     }
 
-    function lineTo(point: ReadonlyVec3) {
+    function lineTo(point: ReadonlyVector3) {
       if (!currentPoint) return moveTo(point);
       target.addSegment(segment.createLine(currentPoint, point));
       vec3.copy(currentPoint, point);
       return api;
     }
 
-    function quadraticTo(control: ReadonlyVec3, point: ReadonlyVec3) {
+    function quadraticTo(control: ReadonlyVector3, point: ReadonlyVector3) {
       if (!currentPoint) return moveTo(point);
       target.addSegment(segment.createQuadraticBezier(currentPoint, control, point));
       vec3.copy(currentPoint, point);
       return api;
     }
 
-    function cubicTo(control1: ReadonlyVec3, control2: ReadonlyVec3, point: ReadonlyVec3) {
+    function cubicTo(control1: ReadonlyVector3, control2: ReadonlyVector3, point: ReadonlyVector3) {
       if (!currentPoint) return moveTo(point);
       target.addSegment(segment.createCubicBezier(currentPoint, control1, control2, point));
       vec3.copy(currentPoint, point);

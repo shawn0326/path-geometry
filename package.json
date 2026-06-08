@@ -31,7 +31,6 @@
     "bezier",
     "geometry",
     "math",
-    "gl-matrix",
     "typescript"
   ],
   "sideEffects": false,
@@ -39,13 +38,10 @@
     "node": ">=18"
   },
   "scripts": {
-    "build": "tsup src/index.ts --format esm --dts --external gl-matrix",
+    "build": "tsup src/index.ts --format esm --dts",
     "docs": "typedoc",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
-  },
-  "dependencies": {
-    "gl-matrix": "^3.4.4"
   },
   "devDependencies": {
     "t3d": "^0.5.3",
