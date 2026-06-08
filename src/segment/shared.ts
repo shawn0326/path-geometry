@@ -1,6 +1,19 @@
 import { vec3 } from 'gl-matrix';
-import type { Segment, SegmentMetrics } from '../types';
+import type { Segment } from '../types';
 import { clamp, EPSILON } from '../helper';
+
+interface SegmentMetrics {
+  divisions: number;
+  lengths: number[];
+  totalLength: number;
+  needsUpdate: boolean;
+}
+
+export type SegmentCacheState = {
+  arcLengthDivisions?: number;
+  _metrics?: SegmentMetrics;
+  _needsUpdate?: boolean;
+};
 
 export type SegmentOps<S, V> = {
   pointAt(out: V, segment: S, t: number): V;
@@ -9,13 +22,13 @@ export type SegmentOps<S, V> = {
   createVector(): V;
 };
 
-export function markSegmentDirty(segment: { _metrics?: SegmentMetrics; _needsUpdate?: boolean }): void {
+export function markSegmentDirty(segment: SegmentCacheState): void {
   segment._needsUpdate = true;
   if (segment._metrics) segment._metrics.needsUpdate = true;
 }
 
-export function getSegmentLengths<S extends { arcLengthDivisions?: number; _metrics?: SegmentMetrics; _needsUpdate?: boolean }, V>(
-  segment: S,
+export function getSegmentLengths<S, V>(
+  segment: S & SegmentCacheState,
   divisions: number | undefined,
   ops: SegmentOps<S, V>
 ): number[] {
@@ -48,8 +61,8 @@ export function getSegmentLengths<S extends { arcLengthDivisions?: number; _metr
   return lengths;
 }
 
-export function getSegmentLength<S extends { arcLengthDivisions?: number; _metrics?: SegmentMetrics; _needsUpdate?: boolean }, V>(
-  segment: S,
+export function getSegmentLength<S, V>(
+  segment: S & SegmentCacheState,
   ops: SegmentOps<S, V>
 ): number {
   const lengths = getSegmentLengths(segment, undefined, ops);
@@ -67,8 +80,8 @@ export function getSegmentPoints<S, V>(segment: S, divisions: number | undefined
   return points;
 }
 
-export function getSegmentSpacedPoints<S extends { arcLengthDivisions?: number; _metrics?: SegmentMetrics; _needsUpdate?: boolean }, V>(
-  segment: S,
+export function getSegmentSpacedPoints<S, V>(
+  segment: S & SegmentCacheState,
   divisions: number | undefined,
   ops: SegmentOps<S, V>
 ): V[] {
@@ -83,8 +96,8 @@ export function getSegmentSpacedPoints<S extends { arcLengthDivisions?: number; 
   return points;
 }
 
-export function mapUToT<S extends { arcLengthDivisions?: number; _metrics?: SegmentMetrics; _needsUpdate?: boolean }, V>(
-  segment: S,
+export function mapUToT<S, V>(
+  segment: S & SegmentCacheState,
   u: number,
   distance: number | undefined,
   ops: SegmentOps<S, V>

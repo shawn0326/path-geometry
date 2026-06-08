@@ -1,31 +1,10 @@
 import type { vec3, ReadonlyVec3 } from 'gl-matrix';
 
-/** @internal */
-export interface SegmentMetrics {
-  divisions: number;
-  lengths: number[];
-  totalLength: number;
-  needsUpdate: boolean;
-}
-
-/**
- * Shared fields used by all segment objects.
- * 所有 segment 对象共享的基础字段。
- */
-export interface SegmentBase {
-  /** Number of samples used to build the approximate arc-length table. 用于构建近似弧长表的采样数。*/
-  arcLengthDivisions?: number;
-  /** @internal */
-  _metrics?: SegmentMetrics;
-  /** @internal */
-  _needsUpdate?: boolean;
-}
-
 /**
  * A 3D straight line segment.
  * 三维直线 segment。
  */
-export interface LineSegment extends SegmentBase {
+export interface LineSegment {
   type: 'line';
   /** Start point. 起点。*/
   p0: vec3;
@@ -55,7 +34,7 @@ export interface LineSegment extends SegmentBase {
  * A 3D quadratic Bezier segment.
  * 三维二次 Bezier segment。
  */
-export interface QuadraticBezierSegment extends SegmentBase {
+export interface QuadraticBezierSegment {
   type: 'quadratic-bezier';
   /** Start point. 起点。*/
   p0: vec3;
@@ -87,7 +66,7 @@ export interface QuadraticBezierSegment extends SegmentBase {
  * A 3D cubic Bezier segment.
  * 三维三次 Bezier segment。
  */
-export interface CubicBezierSegment extends SegmentBase {
+export interface CubicBezierSegment {
   type: 'cubic-bezier';
   /** Start point. 起点。*/
   p0: vec3;
@@ -123,14 +102,6 @@ export interface CubicBezierSegment extends SegmentBase {
  */
 export type Segment = LineSegment | QuadraticBezierSegment | CubicBezierSegment;
 
-/** @internal */
-export interface PathMetrics {
-  lengths: number[];
-  totalLength: number;
-  segmentCount: number;
-  needsUpdate: boolean;
-}
-
 /**
  * A 3D path made of ordered 3D segments.
  * 由有序三维 segment 组成的 path。
@@ -138,10 +109,38 @@ export interface PathMetrics {
 export interface Path {
   /** Ordered path segments. 有序的 segment 列表。*/
   segments: Segment[];
-  /** @internal */
-  _metrics?: PathMetrics;
-  /** @internal */
-  _needsUpdate?: boolean;
+  /** Remove all segments from the path. 移除 path 中的所有 segment。*/
+  clear(): Path;
+  /** Append a segment to the path. 将一个 segment 添加到 path 末尾。*/
+  addSegment(segment: Segment): Path;
+  /** Mark internal caches dirty. 标记内部缓存为失效。*/
+  markDirty(recursive?: boolean): Path;
+  /** Return a fluent writer bound to this path. 返回绑定到当前 path 的链式 writer。*/
+  writer(): PathWriter;
+  /** Replace contents with a polyline through the given points. 用给定点的折线替换内容。*/
+  setPolyline(points: ReadonlyVec3[], options?: PolylineOptions): Path;
+  /** Replace contents with t3d-style smooth cubic curves. 用 t3d 风格平滑三次曲线替换内容。*/
+  setSmoothCurve(points: ReadonlyVec3[], options?: SmoothCurveOptions): Path;
+  /** Replace contents with straight edges and beveled corners. 用直边加倒角曲线替换内容。*/
+  setBeveledCurve(points: ReadonlyVec3[], options?: BeveledCurveOptions): Path;
+  /** Get the total arc length of the path. 获取 path 的总弧长。*/
+  getLength(): number;
+  /** Get cumulative arc-length table across all segments. 获取累计弧长表。*/
+  getLengths(): number[];
+  /** Evaluate the point at normalized arc-length u. 在归一化弧长参数 u 处求点。*/
+  pointAtU(out: vec3, u: number): vec3;
+  /** Evaluate the unit tangent at normalized arc-length u. 在归一化弧长参数 u 处求单位切线。*/
+  tangentAtU(out: vec3, u: number): vec3;
+  /** Evaluate the point at a given arc distance. 在指定弧长处求点。*/
+  pointAtDistance(out: vec3, distance: number): vec3;
+  /** Evaluate the unit tangent at a given arc distance. 在指定弧长处求单位切线。*/
+  tangentAtDistance(out: vec3, distance: number): vec3;
+  /** Sample points by raw parameter. 按原始参数采样点。*/
+  getPoints(divisions?: number): vec3[];
+  /** Sample evenly arc-length spaced points. 等弧长采样点。*/
+  getSpacedPoints(divisions?: number): vec3[];
+  /** Build orthonormal 3D frames along the path. 沿 path 构建正交 3D frame。*/
+  buildFrames(options?: BuildFramesOptions): PathFrames;
 }
 
 /**

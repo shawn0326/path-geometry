@@ -1,14 +1,17 @@
 import { vec3 } from 'gl-matrix';
 import type { ReadonlyVec3 } from 'gl-matrix';
-import type { LineSegment, Segment } from '../types';
+import type { LineSegment } from '../types';
 import { getSegmentLength, getSegmentLengths, getSegmentPoints, getSegmentSpacedPoints, mapUToT, markSegmentDirty, segmentOps } from './shared';
+import type { SegmentCacheState } from './shared';
 import { EPSILON } from '../helper';
+
+type LineSegmentState = LineSegment & SegmentCacheState;
 
 /**
  * Operations for 3D straight line segments.
  * 三维直线 segment 的操作集合。
  */
-export class LineSegmentImpl implements LineSegment {
+class LineSegmentImpl implements LineSegment {
   type: 'line' = 'line';
   p0: vec3;
   p1: vec3;
@@ -43,23 +46,23 @@ export class LineSegmentImpl implements LineSegment {
   }
 
   getLength(): number {
-    return getSegmentLength(this as Segment, segmentOps);
+    return getSegmentLength(this as LineSegmentState, segmentOps);
   }
 
   getLengths(divisions?: number): number[] {
-    return getSegmentLengths(this as Segment, divisions ?? 1, segmentOps);
+    return getSegmentLengths(this as LineSegmentState, divisions ?? 1, segmentOps);
   }
 
   getPoints(divisions?: number): vec3[] {
-    return getSegmentPoints(this as Segment, divisions, segmentOps);
+    return getSegmentPoints(this as LineSegmentState, divisions, segmentOps);
   }
 
   getSpacedPoints(divisions?: number): vec3[] {
-    return getSegmentSpacedPoints(this as Segment, divisions, segmentOps);
+    return getSegmentSpacedPoints(this as LineSegmentState, divisions, segmentOps);
   }
 
   mapUToT(u: number, distance?: number): number {
-    return mapUToT(this as Segment, u, distance, segmentOps);
+    return mapUToT(this as LineSegmentState, u, distance, segmentOps);
   }
 
   markDirty(): void {

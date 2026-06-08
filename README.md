@@ -4,7 +4,7 @@
 
 `path-math` is a small TypeScript math library for 3D paths, curves, frames, and geometry generation. It is based on `gl-matrix` and does not depend on t3d, three.js, DOM, Canvas, WebGL, or WebGPU.
 
-The first implementation follows the curve/path behavior from `t3d.js/examples/jsm/math/curves`, while exposing function-style APIs with `out` parameters where high-frequency calls matter.
+The first implementation follows the curve/path behavior from `t3d.js/examples/jsm/math/curves`, while exposing instance-style path APIs with `out` parameters where high-frequency calls matter.
 
 ## Status
 
@@ -32,7 +32,7 @@ The GitHub Actions workflow deploys `docs/api/` to GitHub Pages automatically af
 
 ## Basic Usage: From Points
 
-Create a path from an ordered `vec3` point array when your source data is already a polyline or route. `path` provides these construction styles:
+Create a path from an ordered `vec3` point array when your source data is already a polyline or route. Use `path.create()` to create a `Path` instance, then call instance methods to build or query it:
 
 - `setPolyline` connects points with straight line segments.
 - `setSmoothCurve` builds smooth cubic curves through the points.
@@ -52,23 +52,25 @@ const rawPoints = [
 
 const route = path.create();
 
-path.setPolyline(route, rawPoints);
-path.setSmoothCurve(route, rawPoints, { smooth: 0.25 });
-path.setBeveledCurve(route, rawPoints, { bevelRadius: 2 });
+route.setPolyline(rawPoints);
+route.setSmoothCurve(rawPoints, { smooth: 0.25 });
+route.setBeveledCurve(rawPoints, { bevelRadius: 2 });
 ```
 
 Path constructors do not implicitly filter points. This keeps runtime cost low and stays close to t3d behavior. If input data may contain consecutive duplicate points, call `preprocessPoints` explicitly before constructing a path.
 
 ```ts
 const points = path.preprocessPoints(rawPoints, { close: true });
-path.setPolyline(route, points, { close: true });
+route.setPolyline(points, { close: true });
 ```
 
 `preprocessPoints` removes consecutive duplicate points by default. If `close: true`, it also removes a duplicated final point equal to the first point, then lets the path close by adding the closing segment.
 
 ## Path Writer
 
-Create a path with `path.writer()` when your source data is command-like: move, line, quadratic Bezier, cubic Bezier, close.
+Create a path with `path.writer()` when your source data is command-like: move, line, quadratic Bezier, cubic Bezier, close. `path.writer()` creates a writer with a new path; `path.writer(route)` or `route.writer()` creates a writer bound to an existing path.
+
+A writer bound to an existing path appends by default. Use `route.clear().writer()` or `route.writer().clear()` when you want to rebuild that path from scratch.
 
 ```ts
 import { path } from 'path-math';
@@ -88,36 +90,36 @@ const route = writer
 const point = [0, 0, 0];
 const tangent = [0, 0, 0];
 
-path.pointAtDistance(point, route, 10);
-path.tangentAtDistance(tangent, route, 10);
+route.pointAtDistance(point, 10);
+route.tangentAtDistance(tangent, 10);
 ```
 
 ## Sampling
 
 Paths expose sampling methods for common geometry workflows:
 
-- `getLength(path)` returns the approximate total length.
-- `pointAtU(out, path, u)` and `tangentAtU(out, path, u)` sample by normalized arc length.
-- `pointAtDistance(out, path, distance)` and `tangentAtDistance(out, path, distance)` sample by absolute distance.
-- `getPoints(path, divisions?)` samples each segment by its raw parameter.
-- `getSpacedPoints(path, divisions?)` samples at approximately even arc-length spacing.
+- `route.getLength()` returns the approximate total length.
+- `route.pointAtU(out, u)` and `route.tangentAtU(out, u)` sample by normalized arc length.
+- `route.pointAtDistance(out, distance)` and `route.tangentAtDistance(out, distance)` sample by absolute distance.
+- `route.getPoints(divisions?)` samples each segment by its raw parameter.
+- `route.getSpacedPoints(divisions?)` samples at approximately even arc-length spacing.
 
 ```ts
-const length = path.getLength(route);
+const length = route.getLength();
 
 const point = [0, 0, 0];
 const tangent = [0, 0, 0];
 
-path.pointAtU(point, route, 0.5);
-path.tangentAtDistance(tangent, route, length * 0.5);
+route.pointAtU(point, 0.5);
+route.tangentAtDistance(tangent, length * 0.5);
 
-const drawingPoints = path.getPoints(route, 24);
-const evenlySpaced = path.getSpacedPoints(route, 32);
+const drawingPoints = route.getPoints(24);
+const evenlySpaced = route.getSpacedPoints(32);
 ```
 
 ## Frame Building
 
-Use `path.buildFrames(route, options?)` when you need stable orientation data along a 3D path, especially for mesh generation such as tubes, ribbons, roads, rails, strokes, or extruded path geometry.
+Use `route.buildFrames(options?)` when you need stable orientation data along a 3D path, especially for mesh generation such as tubes, ribbons, roads, rails, strokes, or extruded path geometry.
 
 `buildFrames` follows the t3d `CurvePath3.computeFrames` behavior. It samples each segment, keeps line segments at one division, and returns both the sampled path points and the frame data needed to place geometry along the path:
 
@@ -132,7 +134,7 @@ Use `path.buildFrames(route, options?)` when you need stable orientation data al
 - `tangentTypes`
 
 ```ts
-const frames = path.buildFrames(route, {
+const frames = route.buildFrames({
   divisions: 24,
   initialNormal: [0, 0, 1],
   transport: true,
@@ -160,13 +162,13 @@ Both builders return plain arrays: `positions`, `normals`, `uvs`, `uvs2`, and `i
 import { path, geometry } from 'path-math';
 
 const route = path.create();
-path.setPolyline(route, [
+route.setPolyline([
   [0, 0, 0],
   [10, 0, 0],
   [10, 10, 0]
 ]);
 
-const frames = path.buildFrames(route, {
+const frames = route.buildFrames({
   divisions: 16,
   initialNormal: [0, 0, 1]
 });
@@ -195,15 +197,15 @@ If you directly mutate an internal segment point, mark the cache dirty yourself:
 route.segments[0].p1[0] = 20;
 
 // Marks only path-level metrics dirty.
-path.markDirty(route);
+route.markDirty();
 
 // Marks path metrics and all segment metrics dirty.
-path.markDirty(route, true);
+route.markDirty(true);
 ```
 
 `_metrics` and `_needsUpdate` are internal cache fields. Do not read or mutate them directly.
 
-Use `path.markDirty(route, true)` after direct edits to `route.segments[i].p0`, `p1`, `p2`, or `p3`.
+Use `route.markDirty(true)` after direct edits to `route.segments[i].p0`, `p1`, `p2`, or `p3`.
 
 ## Tests
 

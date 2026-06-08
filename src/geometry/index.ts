@@ -10,7 +10,7 @@ import { createRibbon } from './ribbon';
  *
  * @example
  * ```ts
- * const frames = path.buildFrames(myPath, { divisions: 20 });
+ * const frames = myPath.buildFrames({ divisions: 20 });
  * const tube   = geometry.createTube(frames, { radius: 0.5 });
  * const ribbon = geometry.createRibbon(frames, { width: 1 });
  * ```

@@ -23,7 +23,7 @@ function vec3FromT3D(v: T3DVector3): vec3 {
 
 function createPolyline(points: ReadonlyVector[], options?: PolylineOptions): Path {
   const targetPath = path.create();
-  return path.setPolyline(targetPath, points, options);
+  return targetPath.setPolyline(points, options);
 }
 
 function createStraightFrames(): PathFrames {
@@ -32,7 +32,7 @@ function createStraightFrames(): PathFrames {
     vec3.fromValues(10, 0, 0)
   ]);
 
-  return path.buildFrames(p, {
+  return p.buildFrames({
     divisions: 1,
     initialNormal: vec3.fromValues(0, 1, 0)
   });
@@ -145,41 +145,68 @@ describe('paths', () => {
       .toPath();
 
     const out = vec3.create();
-    expect(path.getLength(targetPath)).toBeCloseTo(20);
-    expectVec3Close(path.pointAtDistance(out, targetPath, 0), vec3.fromValues(0, 0, 0));
-    expectVec3Close(path.pointAtDistance(out, targetPath, path.getLength(targetPath)), vec3.fromValues(10, 10, 0));
-    expectVec3Close(path.pointAtU(out, targetPath, 0), vec3.fromValues(0, 0, 0));
-    expectVec3Close(path.pointAtU(out, targetPath, 1), vec3.fromValues(10, 10, 0));
+    expect(targetPath.getLength()).toBeCloseTo(20);
+    expectVec3Close(targetPath.pointAtDistance(out, 0), vec3.fromValues(0, 0, 0));
+    expectVec3Close(targetPath.pointAtDistance(out, targetPath.getLength()), vec3.fromValues(10, 10, 0));
+    expectVec3Close(targetPath.pointAtU(out, 0), vec3.fromValues(0, 0, 0));
+    expectVec3Close(targetPath.pointAtU(out, 1), vec3.fromValues(10, 10, 0));
+  });
+
+  it('supports instance-style path operations', () => {
+    const p = path.create()
+      .setPolyline([
+        vec3.fromValues(0, 0, 0),
+        vec3.fromValues(10, 0, 0),
+        vec3.fromValues(10, 10, 0)
+      ]);
+    const out = vec3.create();
+    expect(p.getLength()).toBeCloseTo(20);
+    expectVec3Close(p.pointAtDistance(out, 0), vec3.fromValues(0, 0, 0));
+    expectVec3Close(p.pointAtU(out, 1), vec3.fromValues(10, 10, 0));
+    expect(p.getPoints(4)).toHaveLength(3);
+    expect(p.getSpacedPoints(4)).toHaveLength(5);
+    expect(p.buildFrames({ divisions: 1 }).points).toHaveLength(3);
+  });
+
+  it('supports an instance-bound path writer', () => {
+    const p = path.create();
+    p.writer()
+      .moveTo(vec3.fromValues(0, 0, 0))
+      .lineTo(vec3.fromValues(5, 0, 0))
+      .lineTo(vec3.fromValues(5, 5, 0));
+
+    expect(p.segments).toHaveLength(2);
+    expect(p.getLength()).toBeCloseTo(10);
   });
 
   it('constructs polylines, smooth fallback, and bevel fallback', () => {
     const points = [vec3.fromValues(0, 0, 0), vec3.fromValues(1, 0, 0), vec3.fromValues(1, 1, 0)];
     const p = path.create();
-    path.setPolyline(p, points, { close: true });
+    p.setPolyline(points, { close: true });
     expect(p.segments).toHaveLength(3);
 
-    path.setSmoothCurve(p, points, { smooth: 0 });
+    p.setSmoothCurve(points, { smooth: 0 });
     expect(p.segments.every(segment => segment.type === 'line')).toBe(true);
 
-    path.setBeveledCurve(p, points, { bevelRadius: 0 });
+    p.setBeveledCurve(points, { bevelRadius: 0 });
     expect(p.segments.every(segment => segment.type === 'line')).toBe(true);
   });
 
   it('keeps path markDirty non-recursive by default and recursive when requested', () => {
     const p = createPolyline([vec3.fromValues(0, 0, 0), vec3.fromValues(1, 0, 0)]);
-    expect(path.getLength(p)).toBeCloseTo(1);
+    expect(p.getLength()).toBeCloseTo(1);
 
     p.segments[0]!.p1[0] = 2;
-    path.markDirty(p);
-    expect(path.getLength(p)).toBeCloseTo(1);
+    expect(p.markDirty()).toBe(p);
+    expect(p.getLength()).toBeCloseTo(1);
 
-    path.markDirty(p, true);
-    expect(path.getLength(p)).toBeCloseTo(2);
+    expect(p.markDirty(true)).toBe(p);
+    expect(p.getLength()).toBeCloseTo(2);
   });
 
   it('matches t3d smooth curve control point construction', () => {
     const p = path.create();
-    path.setSmoothCurve(p, [
+    p.setSmoothCurve([
       vec3.fromValues(0, 0, 0),
       vec3.fromValues(10, 0, 0),
       vec3.fromValues(20, 10, 0)
@@ -203,7 +230,7 @@ describe('paths', () => {
 
   it('matches t3d beveled curve construction', () => {
     const p = path.create();
-    path.setBeveledCurve(p, [
+    p.setBeveledCurve([
       vec3.fromValues(0, 0, 0),
       vec3.fromValues(10, 0, 0),
       vec3.fromValues(10, 10, 0)
@@ -244,7 +271,7 @@ describe('paths', () => {
       raw[4]!
     ]);
     expect(polyline.segments).toHaveLength(4);
-    expect(path.getLength(polyline)).toBeCloseTo(20);
+    expect(polyline.getLength()).toBeCloseTo(20);
 
     const preprocessed = path.preprocessPoints(raw, { close: true });
     expect(preprocessed).toHaveLength(3);
@@ -264,7 +291,7 @@ describe('paths', () => {
     ];
 
     const oursSmooth = path.create();
-    path.setSmoothCurve(oursSmooth, duplicatePoints, { smooth: 0.3 });
+    oursSmooth.setSmoothCurve(duplicatePoints, { smooth: 0.3 });
     const t3dSmooth = new T3DCurvePath3();
     t3dSmooth.setSmoothCurves(duplicatePoints.map(point => new T3DVector3(point[0], point[1], point[2])), { smooth: 0.3 });
     expect(oursSmooth.segments).toHaveLength(t3dSmooth.curves.length);
@@ -275,7 +302,7 @@ describe('paths', () => {
     expect(Number.isNaN(t3dSmooth.curves[1]!.v1!.x)).toBe(true);
 
     const oursBeveled = path.create();
-    path.setBeveledCurve(oursBeveled, duplicatePoints, { bevelRadius: 2 });
+    oursBeveled.setBeveledCurve(duplicatePoints, { bevelRadius: 2 });
     const t3dBeveled = new T3DCurvePath3();
     t3dBeveled.setBeveledCurves(duplicatePoints.map(point => new T3DVector3(point[0], point[1], point[2])), { bevelRadius: 2 });
     expect(oursBeveled.segments).toHaveLength(t3dBeveled.curves.length);
@@ -284,15 +311,15 @@ describe('paths', () => {
 
   it('gets points and spaced points', () => {
     const p = path.create();
-    path.addSegment(p, segment.createLine(vec3.fromValues(0, 0, 0), vec3.fromValues(1, 0, 0)));
-    path.addSegment(p, segment.createCubicBezier(
+    p.addSegment(segment.createLine(vec3.fromValues(0, 0, 0), vec3.fromValues(1, 0, 0)));
+    p.addSegment(segment.createCubicBezier(
       vec3.fromValues(1, 0, 0),
       vec3.fromValues(2, 0, 0),
       vec3.fromValues(3, 0, 0),
       vec3.fromValues(4, 0, 0)
     ));
-    expect(path.getPoints(p, 4)).toHaveLength(6);
-    const spaced = path.getSpacedPoints(p, 4);
+    expect(p.getPoints(4)).toHaveLength(6);
+    const spaced = p.getSpacedPoints(4);
     expect(spaced).toHaveLength(5);
     expectVec3Close(spaced[0]!, vec3.fromValues(0, 0, 0));
     expectVec3Close(spaced[4]!, vec3.fromValues(4, 0, 0));
@@ -300,13 +327,13 @@ describe('paths', () => {
 
   it('clamps path getPoints divisions to avoid NaN samples', () => {
     const p = path.create();
-    path.addSegment(p, segment.createCubicBezier(
+    p.addSegment(segment.createCubicBezier(
       vec3.fromValues(0, 0, 0),
       vec3.fromValues(1, 0, 0),
       vec3.fromValues(2, 0, 0),
       vec3.fromValues(3, 0, 0)
     ));
-    const points = path.getPoints(p, 0);
+    const points = p.getPoints(0);
     expect(points).toHaveLength(2);
     for (const point of points) {
       expect(Number.isNaN(point[0])).toBe(false);
@@ -317,14 +344,14 @@ describe('paths', () => {
 
   it('builds orthonormal 3D frames', () => {
     const p = path.create();
-    path.setSmoothCurve(p, [
+    p.setSmoothCurve([
       vec3.fromValues(0, 0, 0),
       vec3.fromValues(5, 2, 0),
       vec3.fromValues(10, 0, 2),
       vec3.fromValues(15, 4, 0)
     ], { smooth: 0.3 });
 
-    const frames = path.buildFrames(p, { divisions: 4 });
+    const frames = p.buildFrames({ divisions: 4 });
     expect(frames.points.length).toBeGreaterThan(0);
 
     for (let i = 0; i < frames.points.length; i++) {
@@ -347,7 +374,7 @@ describe('paths', () => {
       vec3.fromValues(10, 10, 0),
       vec3.fromValues(0, 10, 5)
     ]);
-    const frames = path.buildFrames(p, {
+    const frames = p.buildFrames({
       divisions: 3,
       initialNormal: vec3.fromValues(0, 0, 1),
       transport: true,
@@ -394,7 +421,7 @@ describe('paths', () => {
       vec3.fromValues(10, 10, 0),
       vec3.fromValues(0, 10, 5)
     ], { close: true });
-    const frames = path.buildFrames(p, {
+    const frames = p.buildFrames({
       divisions: 3,
       initialNormal: vec3.fromValues(0, 0, 1),
       transport: false,
@@ -444,7 +471,7 @@ describe('paths', () => {
       vec3.fromValues(0, 10, 5)
     ];
     const oursPath = createPolyline(points, { close: true });
-    const ours = path.buildFrames(oursPath, {
+    const ours = oursPath.buildFrames({
       divisions: 3,
       initialNormal: vec3.fromValues(0, 0, 1),
       transport: false,
@@ -478,15 +505,15 @@ describe('paths', () => {
   it('handles empty paths without producing samples', () => {
     const p = path.create();
     const out = vec3.fromValues(9, 9, 9);
-    expect(path.getLength(p)).toBe(0);
-    expect(path.buildFrames(p).points).toHaveLength(0);
-    expectVec3Close(path.pointAtU(out, p, 0.5), vec3.fromValues(9, 9, 9));
+    expect(p.getLength()).toBe(0);
+    expect(p.buildFrames().points).toHaveLength(0);
+    expectVec3Close(p.pointAtU(out, 0.5), vec3.fromValues(9, 9, 9));
   });
 });
 
 describe('geometry builders', () => {
   it('builds empty tube and ribbon geometry for empty frames', () => {
-    const frames = path.buildFrames(path.create());
+    const frames = path.create().buildFrames();
     expect(geometry.createTube(frames)).toEqual({ positions: [], normals: [], uvs: [], uvs2: [], indices: [] });
     expect(geometry.createRibbon(frames)).toEqual({ positions: [], normals: [], uvs: [], uvs2: [], indices: [] });
   });
