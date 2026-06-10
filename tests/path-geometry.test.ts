@@ -747,6 +747,60 @@ describe('geometry builders', () => {
     expect(geometry.createRibbon(frames)).toEqual({ positions: [], normals: [], uvs: [], uvs2: [], indices: [] });
   });
 
+  it('builds indexed extruded rectangle geometry', () => {
+    const extrudeGeom = geometry.createExtrudeShape({
+      contour: [[0, 0], [1, 0], [1, 1], [0, 1]],
+      depth: 2
+    });
+
+    expect(extrudeGeom.positions).toHaveLength(24 * 3);
+    expect(extrudeGeom.normals).toHaveLength(24 * 3);
+    expect(extrudeGeom.uvs).toHaveLength(24 * 2);
+    expect(extrudeGeom.uvs2).toEqual(extrudeGeom.uvs);
+    expect(extrudeGeom.indices).toHaveLength(36);
+    expectVec3Close(vec3.fromValues(extrudeGeom.positions[0]!, extrudeGeom.positions[1]!, extrudeGeom.positions[2]!), vec3.fromValues(0, 1, 0));
+  });
+
+  it('supports extruded shape cap options and holes', () => {
+    const withoutTop = geometry.createExtrudeShape({
+      contour: [[0, 0], [2, 0], [2, 2], [0, 2]],
+      generateTop: false
+    });
+    const withoutBottom = geometry.createExtrudeShape({
+      contour: [[0, 0], [2, 0], [2, 2], [0, 2]],
+      generateBottom: false
+    });
+    const withHole = geometry.createExtrudeShape({
+      contour: [[0, 0], [4, 0], [4, 4], [0, 4]],
+      holes: [[[1, 1], [1, 3], [3, 3], [3, 1]]]
+    });
+
+    expect(withoutTop.positions).toHaveLength(20 * 3);
+    expect(withoutTop.indices).toHaveLength(30);
+    expect(withoutBottom.positions).toHaveLength(20 * 3);
+    expect(withoutBottom.indices).toHaveLength(30);
+    expect(withHole.positions).toHaveLength(48 * 3);
+    expect(withHole.indices.length).toBeGreaterThan(36);
+  });
+
+  it('mutates extruded shape contours like t3d', () => {
+    const contour = [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]];
+    const hole = [[0.25, 0.25], [0.25, 0.75], [0.75, 0.75], [0.75, 0.25], [0.25, 0.25]];
+
+    geometry.createExtrudeShape({ contour, holes: [hole] });
+
+    expect(contour).toEqual([[0, 0], [0, 1], [1, 1], [1, 0]]);
+    expect(hole).toEqual([[0.25, 0.25], [0.75, 0.25], [0.75, 0.75], [0.25, 0.75]]);
+  });
+
+  it('builds empty extruded shape geometry for empty path frames', () => {
+    const frames = path.create().buildFrames();
+    expect(geometry.createExtrudeShape({
+      contour: [[0, 0], [1, 0], [1, 1]],
+      pathFrames: frames
+    })).toEqual({ positions: [], normals: [], uvs: [], uvs2: [], indices: [] });
+  });
+
   it('builds indexed tube side geometry from straight frames', () => {
     const frames = createStraightFrames();
     const tubeGeom = geometry.createTube(frames, { radius: 1, radialSegments: 4 });

@@ -154,9 +154,9 @@ Use `divisions` to control curve sampling density. Use `initialNormal` to lock t
 
 ## Geometry Building
 
-Use `geometry.createTube(frames, options?)` and `geometry.createRibbon(frames, options?)` to turn 3D path frames into renderer-neutral indexed geometry buffers.
+Use `geometry.createTube(frames, options?)`, `geometry.createRibbon(frames, options?)`, and `geometry.createExtrudeShape(shape)` to create renderer-neutral indexed geometry buffers.
 
-Both builders return plain arrays: `positions`, `normals`, `uvs`, `uvs2`, and `indices`. You can convert them to the buffer/attribute format required by WebGL, WebGPU, or your renderer.
+All geometry builders return plain arrays: `positions`, `normals`, `uvs`, `uvs2`, and `indices`. You can convert them to the buffer/attribute format required by WebGL, WebGPU, or your renderer.
 
 ```ts
 import { path, geometry } from 'path-geometry';
@@ -184,6 +184,24 @@ const ribbonGeometry = geometry.createRibbon(frames, {
   width: 1,
   side: 'both',
   arrow: false
+});
+
+const extrudeGeometry = geometry.createExtrudeShape({
+  contour: [
+    [0, 0],
+    [2, 0],
+    [2, 1],
+    [0, 1]
+  ],
+  holes: [
+    [
+      [0.5, 0.25],
+      [1.5, 0.25],
+      [1.5, 0.75],
+      [0.5, 0.75]
+    ]
+  ],
+  pathFrames: frames
 });
 ```
 

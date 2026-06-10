@@ -268,6 +268,38 @@ export interface GeometryData {
 }
 
 /**
+ * A 2D point used by planar shape extrusion.
+ * 用于平面 shape 挤出的二维点。
+ */
+export type ExtrudeShapePoint = number[];
+
+/**
+ * Options for building extruded shape geometry from a 2D contour and optional holes.
+ *
+ * This builder follows t3d's `ExtrudeShapeBuilder` behavior: it may mutate `contour`
+ * and `holes` by reversing point order and removing duplicated closing points.
+ *
+ * 从二维轮廓和可选孔洞构建挤出几何的选项。
+ *
+ * 该 builder 遵循 t3d 的 `ExtrudeShapeBuilder` 行为：可能会通过反转点顺序、
+ * 移除重复闭合点来修改传入的 `contour` 和 `holes`。
+ */
+export interface BuildExtrudeShapeOptions {
+  /** Outer contour points. 外轮廓点。*/
+  contour: ExtrudeShapePoint[];
+  /** Hole contours. 孔洞轮廓。*/
+  holes?: ExtrudeShapePoint[][];
+  /** Extrusion depth. Defaults to 1. 挤出深度，默认 1。*/
+  depth?: number;
+  /** Generate the top cap. Defaults to true. 是否生成顶部面，默认 true。*/
+  generateTop?: boolean;
+  /** Generate the bottom cap. Defaults to true. 是否生成底部面，默认 true。*/
+  generateBottom?: boolean;
+  /** Extrude along path frames instead of the Z axis. 沿 path frame 挤出，而不是沿 Z 轴。*/
+  pathFrames?: PathFrames;
+}
+
+/**
  * Options for building tube geometry from 3D path frames.
  * 从三维 path frame 构建管状几何的选项。
  */

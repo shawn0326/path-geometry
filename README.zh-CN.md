@@ -154,9 +154,9 @@ for (let i = 0; i < frames.points.length; i++) {
 
 ## 几何生成
 
-可以使用 `geometry.createTube(frames, options?)` 和 `geometry.createRibbon(frames, options?)`，把 3D path frames 转成与渲染器无关的索引几何数据。
+可以使用 `geometry.createTube(frames, options?)`、`geometry.createRibbon(frames, options?)` 和 `geometry.createExtrudeShape(shape)`，创建与渲染器无关的索引几何数据。
 
-两个 builder 都返回普通数组：`positions`、`normals`、`uvs`、`uvs2` 和 `indices`。你可以按需要把它们转换成 WebGL、WebGPU 或自定义 renderer 所需的 buffer/attribute 格式。
+所有 geometry builder 都返回普通数组：`positions`、`normals`、`uvs`、`uvs2` 和 `indices`。你可以按需要把它们转换成 WebGL、WebGPU 或自定义 renderer 所需的 buffer/attribute 格式。
 
 ```ts
 import { path, geometry } from 'path-geometry';
@@ -184,6 +184,24 @@ const ribbonGeometry = geometry.createRibbon(frames, {
   width: 1,
   side: 'both',
   arrow: false
+});
+
+const extrudeGeometry = geometry.createExtrudeShape({
+  contour: [
+    [0, 0],
+    [2, 0],
+    [2, 1],
+    [0, 1]
+  ],
+  holes: [
+    [
+      [0.5, 0.25],
+      [1.5, 0.25],
+      [1.5, 0.75],
+      [0.5, 0.75]
+    ]
+  ],
+  pathFrames: frames
 });
 ```
 

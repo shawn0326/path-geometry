@@ -7,10 +7,12 @@ export { geometry } from './geometry';
 
 export type {
   BeveledCurveOptions,
+  BuildExtrudeShapeOptions,
   BuildFramesOptions,
   BuildRibbonOptions,
   BuildTubeOptions,
   CubicBezierSegment,
+  ExtrudeShapePoint,
   GeometryData,
   LineSegment,
   Path,
